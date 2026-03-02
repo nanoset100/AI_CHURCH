@@ -327,10 +327,15 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: AppTheme.textColor.withValues(alpha: 0.7),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
+                    TextButton(
+                      onPressed: () {
                         Navigator.of(context).pop();
                       },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         '로그인',
                         style: notoSansKr.copyWith(

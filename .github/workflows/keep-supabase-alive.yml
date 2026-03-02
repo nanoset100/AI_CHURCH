@@ -1,0 +1,24 @@
+# 워크플로우 이름: Supabase 프로젝트 일시 정지 방지용 핑
+name: "Supabase Keep Alive Ping"
+
+on:
+  # 매 4일마다 UTC 자정(한국 시간 오전 9시)에 실행
+  schedule:
+    - cron: '0 0 */4 * *'
+  # GitHub 상에서 수동으로 실행 가능하게 설정
+  workflow_dispatch:
+
+jobs:
+  ping:
+    # 최신 우분투 환경에서 실행
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: "Supabase에 ping 보내기 (paused 방지)"
+        run: |
+          # Supabase REST API 루트에 요청을 보내 활동 내역을 갱신합니다.
+          # 특정 테이블을 조회하지 않아도 API 호출 자체가 발생하므로 활동으로 간주됩니다.
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -s -o /dev/null -w "%{http_code}" | grep -E '200|401' || echo "Ping sent to API"

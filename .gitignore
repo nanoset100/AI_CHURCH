@@ -1,0 +1,25 @@
+# Flutter/Dart 관련
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# 환경 변수 (보안상 절대 커밋 금지)
+.env
+.env.example
+
+# IDE 관련
+.idea/
+.vscode/
+*.iml
+
+# 로그 및 임시 파일
+*.log
+*.zip
+*.sql
+
+# macOS 관련
+.DS_Store

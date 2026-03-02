@@ -265,14 +265,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppTheme.textColor.withValues(alpha: 0.7),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
+                    TextButton(
+                      onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const SignupScreen(),
                           ),
                         );
                       },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         '회원가입',
                         style: notoSansKr.copyWith(
