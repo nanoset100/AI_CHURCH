@@ -22,49 +22,52 @@ class AiSermonCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          // 포인트 컬러 배경으로 강조
-          gradient: LinearGradient(
+          // 보라색/블루 그라데이션으로 더 프리미엄한 느낌
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.primaryColor.withValues(alpha: 0.1),
-              AppTheme.primaryColor.withValues(alpha: 0.05),
+              Color(0xFF7F7FD5), // 소프트 퍼플
+              Color(0xFF86A8E7), // 소프트 블루
+              Color(0xFF91EAE4), // 민트 블루
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-          // 그림자로 강조 효과
+          borderRadius: BorderRadius.circular(24),
+          // 그림자로 입체감 부여
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryColor.withValues(alpha: 0.2),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF7F7FD5).withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Row(
           children: [
-            // 아이콘 영역
+            // 아이콘 영역 - 더 세련된 디자인
             Container(
-              width: 64,
-              height: 64,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Text(
-                    '✨',
-                    style: TextStyle(fontSize: 24),
+                  const Icon(
+                    Icons.mic_none_rounded,
+                    color: Colors.white,
+                    size: 32,
                   ),
-                  Text(
-                    '🎙️',
-                    style: TextStyle(fontSize: 20),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Icon(
+                      Icons.auto_awesome,
+                      color: Colors.amber[200],
+                      size: 14,
+                    ),
                   ),
                 ],
               ),
@@ -77,19 +80,21 @@ class AiSermonCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '나만의 AI 설교 만들기',
+                    'AI 맞춤 설교 만들기',
                     style: notoSansKr.copyWith(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textColor,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '내 고민에 딱 맞는 맞춤 설교를 받아보세요',
+                    '주제에 맞는 말씀과 설교를 받아보세요',
                     style: notoSansKr.copyWith(
-                      fontSize: 14,
-                      color: AppTheme.textColor.withValues(alpha: 0.7),
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -97,10 +102,10 @@ class AiSermonCard extends StatelessWidget {
             ),
             
             // 화살표 아이콘
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppTheme.primaryColor,
-              size: 20,
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 18,
             ),
           ],
         ),

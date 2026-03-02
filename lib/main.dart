@@ -17,13 +17,22 @@ void main() async {
   
   // 환경 변수 로드
   await EnvConfig.load();
-  
+
+  // Supabase 설정 검증
+  if (!EnvConfig.isConfigured) {
+    runApp(_SupabaseConfigErrorApp(
+      message: 'Supabase URL 또는 Anon Key가 .env에 올바르게 설정되지 않았습니다.\n'
+          'Supabase 대시보드 > Settings > API에서 값을 복사해 .env 파일을 수정하세요.',
+    ));
+    return;
+  }
+
   // Supabase 초기화
   await Supabase.initialize(
     url: EnvConfig.supabaseUrl,
     anonKey: EnvConfig.supabaseAnonKey,
   );
-  
+
   runApp(const MyApp());
 }
 
@@ -41,6 +50,53 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         home: const AuthWrapper(),
         debugShowCheckedModeBanner: false,
+      ),
+    );
+  }
+}
+
+/// Supabase 설정 오류 시 표시할 화면
+class _SupabaseConfigErrorApp extends StatelessWidget {
+  final String message;
+
+  const _SupabaseConfigErrorApp({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'AI 가나안교회',
+      theme: AppTheme.lightTheme,
+      home: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.settings_suggest, size: 64, color: AppTheme.primaryColor),
+                const SizedBox(height: 24),
+                Text(
+                  '연결 설정이 필요합니다',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

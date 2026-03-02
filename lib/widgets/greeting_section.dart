@@ -18,20 +18,56 @@ class GreetingSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '안녕하세요, $userName님',
-            style: notoSansKr.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textColor,
-            ),
+          Row(
+            children: [
+              Text(
+                '안녕하세요, $userName님',
+                style: notoSansKr.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 게스트 배지 추가
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '게스트',
+                      style: notoSansKr.copyWith(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            '오늘도 주님과 함께하는 하루 되세요',
+            '교회 밖에서도, 집에서도 — 주님과 동행하세요',
             style: notoSansKr.copyWith(
               fontSize: 14,
-              color: AppTheme.textColor.withValues(alpha: 0.7),
+              color: AppTheme.textColor.withValues(alpha: 0.6),
             ),
           ),
         ],
