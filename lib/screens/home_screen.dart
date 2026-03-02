@@ -42,48 +42,85 @@ class _HomeScreenState extends State<HomeScreen> {
         slivers: [
           // 상단 헤더 (고정)
           SliverAppBar(
-            backgroundColor: AppTheme.backgroundColor,
+            backgroundColor: AppTheme.primaryColor,
             elevation: 0,
             pinned: true,
-            leading: IconButton(
-              icon: const Icon(Icons.person_outline),
-              color: AppTheme.textColor,
-              onPressed: () {
-                // 프로필 화면으로 이동 (추후 구현)
-              },
+            leading: Center(
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.person_outline),
+                  color: Colors.white,
+                  onPressed: () {
+                    // 프로필 화면으로 이동 (추후 구현)
+                  },
+                ),
+              ),
             ),
             title: Text(
               'AI 가나안교회',
               style: notoSansKr.copyWith(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textColor,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.5,
               ),
             ),
             centerTitle: true,
             actions: [
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    color: AppTheme.textColor,
-                    onPressed: () {
-                      // 알림 화면으로 이동 (추후 구현)
-                    },
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.notifications_outlined),
+                        color: Colors.white,
+                        onPressed: () {
+                          // 알림 화면으로 이동 (추후 구현)
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF5A623), // 주황색 배지
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '3',
+                          style: notoSansKr.copyWith(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
