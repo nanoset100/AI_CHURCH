@@ -95,24 +95,25 @@ class BottomNavBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? AppTheme.primaryColor : Colors.grey,
+            size: 22, // 아이콘 크기 살짝 축소
+          ),
+          const SizedBox(height: 2), // 간격 축소
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10, // 글꼴 크기 축소
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected ? AppTheme.primaryColor : Colors.grey,
-              size: 24,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: notoSansKr.copyWith(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppTheme.primaryColor : Colors.grey,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
       ),
     );
   }

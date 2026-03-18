@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ai_canaan_church/services/auth_service.dart';
-import 'package:ai_canaan_church/screens/home_screen.dart';
+import 'package:ai_canaan_church/screens/main_screen.dart';
 import 'package:ai_canaan_church/screens/auth/login_screen.dart';
 
 /// 인증 상태에 따라 화면을 자동 분기하는 Wrapper
 /// 
 /// ReflectOS 패턴:
-/// - 로그인되어 있으면 HomeScreen
+/// - 로그인되어 있으면 MainScreen
 /// - 로그인 안 되어 있으면 LoginScreen
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -63,7 +63,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
     // 인증 상태에 따라 화면 분기
     if (_isAuthenticated) {
-      return const HomeScreen();
+      return const MainScreen();
     } else {
       return const LoginScreen();
     }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:ai_canaan_church/providers/activity_provider.dart';
 
 /// 오늘의 예배 카드
 class DailyWorshipCard extends StatelessWidget {
@@ -10,13 +13,26 @@ class DailyWorshipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final notoSansKr = GoogleFonts.notoSansKr();
     
-    // TODO: 실제 데이터는 Provider나 상태 관리로 가져오기
-    const worshipTitle = '새벽 기도의 능력';
-    const pastorName = '김목사';
-    const bibleVerse = '마태복음 6:5-15';
-    const duration = '15분';
+    // MVP용 국내 유명 목사님 설교 유튜브 링크 연동 (예: 이찬수 목사님)
+    const worshipTitle = '위기를 기회로 만드는 믿음';
+    const pastorName = '이찬수 목사';
+    const bibleVerse = '로마서 8:28';
+    const duration = '35분';
+    final Uri youtubeUrl = Uri.parse('https://www.youtube.com/results?search_query=%EC%9D%B4%EC%B0%AC%EC%88%98+%EB%AA%A9%EC%82%AC+%EC%84%A4%EA%B5%90'); // 검색결과 링크로 임시 대체 (실제 영상 링크로 변경 가능)
     
-    return Container(
+    return InkWell(
+      onTap: () async {
+        if (!await launchUrl(youtubeUrl, mode: LaunchMode.externalApplication)) {
+          debugPrint('Could not launch $youtubeUrl');
+        } else {
+          // 영상 실행 성공 시 활동 기록 (Provider 호출 시 context 에러 방지 위해 mounted 체크)
+          if (context.mounted) {
+            Provider.of<ActivityProvider>(context, listen: false).logWorship(worshipTitle);
+          }
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -111,6 +127,6 @@ class DailyWorshipCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }

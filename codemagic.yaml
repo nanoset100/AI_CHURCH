@@ -1,0 +1,48 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    max_build_duration: 60
+    integrations:
+      app_store_connect: LuckyTenAPI    # integrations 위치 (environment 안에 넣으면 오류!)
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.nanoset.aiCanaanChurch
+      groups:
+        - bible                          # Codemagic 환경변수 그룹명
+      vars:
+        BUNDLE_ID: "com.nanoset.aiCanaanChurch"
+
+    scripts:
+      - name: dart-define 환경변수 주입
+        script: |
+          # Codemagic 'bible' 그룹에 SUPABASE_URL, SUPABASE_ANON_KEY 가 있어야 함
+          echo "SUPABASE_URL=$SUPABASE_URL" > .env.build
+          echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env.build
+
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Xcode 서명 설정 적용       # 없으면 "No valid code signing" 오류!
+        script: xcode-project use-profiles
+
+      - name: Flutter build IPA
+        script: |
+          flutter build ipa --release \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --export-options-plist=ios/ExportOptions.plist
+        # --export-options-plist 없으면 "No artifacts were found" 오류!
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true       # true 로 설정해야 자동 업로드
+        submit_to_app_store: false
+        # app_apple_id 필드 넣으면 validation 오류! 넣지 말 것

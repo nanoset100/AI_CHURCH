@@ -9,8 +9,12 @@ import 'package:ai_canaan_church/widgets/daily_bible_card.dart';
 import 'package:ai_canaan_church/widgets/prayer_requests_card.dart';
 import 'package:ai_canaan_church/widgets/saved_sermons_card.dart';
 import 'package:ai_canaan_church/widgets/weekly_activity_card.dart';
-import 'package:ai_canaan_church/widgets/bottom_nav_bar.dart';
 import 'package:ai_canaan_church/providers/sermon_provider.dart';
+import 'package:ai_canaan_church/providers/bible_provider.dart';
+import 'package:ai_canaan_church/providers/prayer_provider.dart';
+import 'package:ai_canaan_church/providers/activity_provider.dart';
+import 'package:ai_canaan_church/screens/profile_screen.dart';
+import 'package:ai_canaan_church/screens/notification_screen.dart';
 
 /// 홈 화면 - CustomScrollView와 Sliver 구조로 부드러운 스크롤 구현
 class HomeScreen extends StatefulWidget {
@@ -21,14 +25,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentNavIndex = 0;
-
   @override
   void initState() {
     super.initState();
-    // 저장된 설교 로드
+    // 각종 초기 데이터 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SermonProvider>(context, listen: false).loadSavedSermons();
+      Provider.of<BibleProvider>(context, listen: false).fetchDailyPreview();
+      Provider.of<PrayerProvider>(context, listen: false).fetchPrayerRequests();
+      Provider.of<ActivityProvider>(context, listen: false).fetchActivityStats();
     });
   }
 
@@ -58,7 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.person_outline),
                   color: Colors.white,
                   onPressed: () {
-                    // 프로필 화면으로 이동 (추후 구현)
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
                   },
                 ),
               ),
@@ -76,50 +83,23 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.notifications_outlined),
-                        color: Colors.white,
-                        onPressed: () {
-                          // 알림 화면으로 이동 (추후 구현)
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFF5A623), // 주황색 배지
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '3',
-                          style: notoSansKr.copyWith(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.notifications_outlined),
+                    color: Colors.white,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -179,19 +159,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           
           // 하단 여백 (Bottom Navigation Bar 공간 확보)
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 80),
+          // 하단 여백 추가 (네비게이션바 오버플로우 방지)
+          const SliverPadding(
+            padding: EdgeInsets.only(bottom: 60),
           ),
         ],
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
-          // 네비게이션 처리 (추후 구현)
-        },
       ),
     );
   }

@@ -6,6 +6,10 @@ import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/config/env_config.dart';
 import 'package:ai_canaan_church/widgets/auth_wrapper.dart';
 import 'package:ai_canaan_church/providers/sermon_provider.dart';
+import 'package:ai_canaan_church/providers/bible_provider.dart';
+import 'package:ai_canaan_church/providers/prayer_provider.dart';
+import 'package:ai_canaan_church/providers/activity_provider.dart';
+import 'package:ai_canaan_church/providers/auth_provider.dart' as app_auth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +48,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SermonProvider()),
+        ChangeNotifierProvider(create: (_) => BibleProvider()),
+        ChangeNotifierProvider(create: (_) => PrayerProvider()),
+        ChangeNotifierProvider(create: (_) => ActivityProvider()),
+        ChangeNotifierProvider(create: (_) => app_auth.AuthProvider()),
       ],
       child: MaterialApp(
         title: 'AI 가나안교회',

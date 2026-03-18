@@ -10,24 +10,34 @@ AI Canaan Church (AI 가나안교회) — a Flutter cross-platform app (iOS, And
 
 ```bash
 flutter pub get          # Install dependencies
-flutter run              # Run on connected device
-flutter run -d chrome    # Run on web
-flutter run -d <device>  # Run on specific device
+
+# 개발 실행 (.env.json 필수)
+flutter run --dart-define-from-file=.env.json
+flutter run -d chrome --dart-define-from-file=.env.json
+
 flutter analyze          # Static analysis
 flutter test             # Run tests
 dart format lib/         # Format code
-flutter build apk --release  # Android release build
-flutter build web --release  # Web release build
+
+# 릴리스 빌드 (.env.json 또는 CI/CD 시크릿 사용)
+flutter build apk --release --dart-define-from-file=.env.json
+flutter build ipa --release --dart-define-from-file=.env.json
+flutter build web --release --dart-define-from-file=.env.json
 ```
 
 ## Environment Setup
 
-Requires a `.env` file in project root (see `.env.example`):
+`.env.json` 파일을 프로젝트 루트에 생성 (`.env.json.example` 참고):
+```json
+{
+  "SUPABASE_URL": "https://<project>.supabase.co",
+  "SUPABASE_ANON_KEY": "<anon-key>"
+}
 ```
-SUPABASE_URL=https://<project>.supabase.co
-SUPABASE_ANON_KEY=<anon-key>
-```
-The `.env` file is bundled as a Flutter asset. `EnvConfig.load()` validates the URL format before Supabase initialization; if invalid, the app shows a config error screen instead of crashing.
+- `.env.json`은 `.gitignore`에 포함되어 커밋되지 않음
+- `EnvConfig`는 `String.fromEnvironment()`로 컴파일타임 상수를 읽음
+- 키가 바이너리에 내장되어 앱 번들에 평문 파일로 노출되지 않음
+- 설정 누락 시 앱이 설정 오류 화면을 표시하고 크래시하지 않음
 
 ## Architecture
 
@@ -51,7 +61,7 @@ The auth system follows a specific pattern documented in the codebase:
 4. `AuthWrapper` widget listens to Supabase auth state and routes accordingly
 
 ### AI Sermon Flow
-Dialog (user enters concern) → LoadingScreen (3-5s simulated delay) → ResultScreen (display + save option). Currently uses sample data in `AiService`; real AI integration is pending.
+Dialog (user enters concern) → LoadingScreen → ResultScreen (display + save option). `AiService`가 Supabase Edge Function `generate-sermon`을 호출하여 실제 AI 설교를 생성.
 
 ### Data Storage
 Dual strategy: primary storage in Supabase PostgreSQL (`saved_sermons` table), with in-memory fallback for offline resilience.
@@ -74,4 +84,3 @@ RLS policies need configuration via `supabase_rls_fix.sql`.
 - `supabase_flutter` — Auth, database, real-time
 - `provider` — State management via ChangeNotifier
 - `google_fonts` — Korean font support (Noto Sans KR)
-- `flutter_dotenv` — .env file loading

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/services/auth_service.dart';
-import 'package:ai_canaan_church/screens/home_screen.dart';
+import 'package:ai_canaan_church/screens/main_screen.dart';
 import 'package:ai_canaan_church/screens/auth/signup_screen.dart';
 
 /// 로그인 화면
@@ -50,9 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (result.success) {
-      // 로그인 성공 시 즉시 HomeScreen으로 이동
+      // 로그인 성공 시 즉시 MainScreen으로 이동
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
       );
     } else {
       setState(() {

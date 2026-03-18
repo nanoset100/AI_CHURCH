@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
@@ -15,9 +16,25 @@ class _AiSermonLoadingScreenState extends State<AiSermonLoadingScreen>
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  static const _verses = [
+    '"여호와를 앙망하는 자는 새 힘을 얻으리니"\n- 이사야 40:31',
+    '"내가 너와 함께 하여 어디로 가든지 너를 지키리라"\n- 창세기 28:15',
+    '"너희 염려를 다 주께 맡기라 이는 그가 너희를 돌보심이라"\n- 베드로전서 5:7',
+    '"주는 나의 목자시니 내게 부족함이 없으리로다"\n- 시편 23:1',
+    '"믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니"\n- 히브리서 11:1',
+    '"하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니"\n- 요한복음 3:16',
+    '"범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라"\n- 데살로니가전서 5:18',
+    '"두려워하지 말라 내가 너와 함께 함이라"\n- 이사야 41:10',
+    '"나는 포도나무요 너희는 가지라"\n- 요한복음 15:5',
+    '"주의 말씀은 내 발에 등이요 내 길에 빛이니이다"\n- 시편 119:105',
+  ];
+
+  late final String _verse;
+
   @override
   void initState() {
     super.initState();
+    _verse = _verses[Random().nextInt(_verses.length)];
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -90,7 +107,7 @@ class _AiSermonLoadingScreenState extends State<AiSermonLoadingScreen>
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                '"여호와를 앙망하는 자는 새 힘을 얻으리니"\n- 이사야 40:31',
+                _verse,
                 style: notoSansKr.copyWith(
                   fontSize: 14,
                   color: AppTheme.textColor.withValues(alpha: 0.8),

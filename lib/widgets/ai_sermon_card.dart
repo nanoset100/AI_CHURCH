@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/screens/ai_sermon_dialog.dart';
 
 /// AI 설교 만들기 카드 - 핵심 기능 (시각적으로 강조)

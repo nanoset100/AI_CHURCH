@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/providers/sermon_provider.dart';
-import 'package:ai_canaan_church/screens/ai_sermon_result_screen.dart';
+import 'package:ai_canaan_church/screens/saved_sermon_detail_screen.dart';
+import 'package:ai_canaan_church/screens/saved_sermons_list_screen.dart';
 
 /// 보관된 설교 카드
 class SavedSermonsCard extends StatelessWidget {
@@ -106,13 +107,13 @@ class SavedSermonsCard extends StatelessWidget {
               ),
             )
           else
-            ...savedSermons.map((sermon) {
+            ...savedSermons.take(3).map((sermon) {
               return GestureDetector(
                 onTap: () {
                   // 설교 상세 보기
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => AiSermonResultScreen(sermon: sermon),
+                      builder: (_) => SavedSermonDetailScreen(sermon: sermon),
                     ),
                   );
                 },
@@ -209,6 +210,53 @@ class SavedSermonsCard extends StatelessWidget {
                 ),
               );
             }),
+            
+            // 전체보기 버튼 (설교가 3개 초과인 경우에만 표시)
+            if (sermonCount > 3)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SavedSermonsListScreen(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '전체보기 ($sermonCount)',
+                          style: notoSansKr.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
         ],
       ),
     );
