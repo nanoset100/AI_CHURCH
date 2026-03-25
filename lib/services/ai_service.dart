@@ -27,11 +27,20 @@ class AiService {
       if (response.status == 200) {
         final sermonData = response.data;
 
+        // 응답이 Map 형태인지 확인 (파싱 오류 방지)
+        if (sermonData is! Map) {
+          throw Exception('서버 응답 형식 오류: ${sermonData.runtimeType}');
+        }
+
+        final title = sermonData['title']?.toString() ?? topic;
+        final verse = sermonData['verse']?.toString() ?? '';
+        final content = sermonData['content']?.toString() ?? '';
+
         return Sermon(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          title: '[$topic] ${sermonData['title']}',
-          verse: sermonData['verse'].toString().split(' - ')[0], // 구절의 앞부분(성경 장절)만 추출
-          content: sermonData['content'],
+          title: '[$topic] $title',
+          verse: verse.split(' - ')[0],
+          content: content,
           userPrompt: keyword ?? '',
           topic: topic,
           situation: situation,

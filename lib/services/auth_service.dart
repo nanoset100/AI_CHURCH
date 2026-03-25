@@ -154,6 +154,47 @@ class AuthService {
     }
   }
 
+  /// 계정 삭제 (Apple 가이드라인 5.1.1v 준수)
+  ///
+  /// 1. profiles 테이블에서 사용자 데이터 삭제
+  /// 2. Supabase RPC로 auth.users에서 계정 삭제
+  /// 3. 로컬 세션 종료
+  static Future<AuthResult> deleteAccount() async {
+    try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId == null) {
+        return AuthResult(
+          success: false,
+          message: '로그인된 사용자가 없습니다.',
+        );
+      }
+
+      // 1. profiles 테이블 데이터 삭제
+      try {
+        await _client.from('profiles').delete().eq('id', userId);
+      } catch (e) {
+        debugPrint('profiles 삭제 실패 (계속 진행): $e');
+      }
+
+      // 2. Supabase RPC로 계정 삭제 (auth.users)
+      await _client.rpc('delete_user');
+
+      // 3. 로컬 세션 종료
+      await _client.auth.signOut();
+
+      return AuthResult(
+        success: true,
+        message: '계정이 성공적으로 삭제되었습니다.',
+      );
+    } catch (e) {
+      debugPrint('계정 삭제 오류: $e');
+      return AuthResult(
+        success: false,
+        message: '계정 삭제 중 오류가 발생했습니다: ${e.toString()}',
+      );
+    }
+  }
+
   /// 로그아웃
   static Future<void> signOut() async {
     await _client.auth.signOut();

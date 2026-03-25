@@ -27,8 +27,7 @@ class _SavedSermonDetailScreenState extends State<SavedSermonDetailScreen> {
   final AudioService _audioService = AudioService();
   bool _isLoadingAudio = false;
   bool _isMaleVoice = true; // 저장 시 성별을 모를 수 있으므로 기본값 남성
-  bool _hasAudioLoaded = false;
-  PlayerState _playerState = PlayerState.stopped;
+  bool _isCached = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
@@ -51,10 +50,18 @@ class _SavedSermonDetailScreenState extends State<SavedSermonDetailScreen> {
       if (mounted) setState(() { _duration = dur; });
     });
 
-    // 만약 로컬에 저장된 음성 파일이 있다면 자동으로 로드 여부 설정 가능
+    _checkAudioCache();
+  }
+
+  Future<void> _checkAudioCache() async {
     if (widget.sermon.audioUrl != null) {
-      // 로컬 파일이 존재하면 곧바로 재생 준비 상태로 표기할 수도 있으나, 
-      // 명시적으로 사용자가 플레이를 누를 때 로드하도록 합니다.
+      final file = File(widget.sermon.audioUrl!);
+      final exists = await file.exists();
+      if (mounted) {
+        setState(() {
+          _isCached = exists;
+        });
+      }
     }
   }
 
@@ -421,8 +428,6 @@ ${widget.sermon.content}
 
   Widget _buildAudioPlayerPanel(TextStyle notoSansKr) {
     bool isPlaying = _playerState == PlayerState.playing;
-    // 로컬 파일이 저장되어있다면 성우 선택을 막아버리고 "저장된 음성" 배지를 띄운다
-    bool isCached = widget.sermon.audioUrl != null && !(_hasAudioLoaded && widget.sermon.audioUrl == null);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -438,9 +443,13 @@ ${widget.sermon.content}
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               Text(
                 '설교 다시듣기',
@@ -451,41 +460,53 @@ ${widget.sermon.content}
                 ),
               ),
               
-              if (isCached)
+              if (_isCached)
                 // 캐시된 파일일 경우 (오프라인 모드 배지)
-                Chip(
-                  label: Text('저장된 음성', style: TextStyle(fontSize: 12)),
-                  backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.5),
-                  labelStyle: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '저장된 음성',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 )
               else 
                 // 캐시된 오디오가 아닐때 성우 토글 보여줌
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     GestureDetector(
                       onTap: () => _onVoiceTypeChanged(true),
                       child: Chip(
-                        label: Text('👨 남성'),
+                        visualDensity: VisualDensity.compact,
+                        label: Text('👨 남성', style: TextStyle(fontSize: 12)),
                         backgroundColor: _isMaleVoice ? AppTheme.primaryColor.withValues(alpha: 0.2) : Colors.grey.shade200,
                         labelStyle: TextStyle(
                           color: _isMaleVoice ? AppTheme.primaryColor : Colors.grey.shade700,
                           fontWeight: _isMaleVoice ? FontWeight.bold : FontWeight.normal,
                         ),
+                        side: BorderSide.none,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _onVoiceTypeChanged(false),
                       child: Chip(
-                        label: Text('👩 여성'),
+                        visualDensity: VisualDensity.compact,
+                        label: Text('👩 여성', style: TextStyle(fontSize: 12)),
                         backgroundColor: !_isMaleVoice ? AppTheme.primaryColor.withValues(alpha: 0.2) : Colors.grey.shade200,
                         labelStyle: TextStyle(
                           color: !_isMaleVoice ? AppTheme.primaryColor : Colors.grey.shade700,
                           fontWeight: !_isMaleVoice ? FontWeight.bold : FontWeight.normal,
                         ),
+                        side: BorderSide.none,
                       ),
                     ),
                   ],

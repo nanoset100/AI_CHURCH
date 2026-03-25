@@ -424,8 +424,11 @@ ${widget.sermon.content}
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               Text(
                 '설교 듣기',
@@ -436,29 +439,34 @@ ${widget.sermon.content}
                 ),
               ),
               // 성우 선택 토글
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   GestureDetector(
                     onTap: () => _onVoiceTypeChanged(true),
                     child: Chip(
-                      label: Text('👨 남성'),
+                      visualDensity: VisualDensity.compact,
+                      label: Text('👨 남성', style: TextStyle(fontSize: 12)),
                       backgroundColor: _isMaleVoice ? AppTheme.primaryColor.withValues(alpha: 0.2) : Colors.grey.shade200,
                       labelStyle: TextStyle(
                         color: _isMaleVoice ? AppTheme.primaryColor : Colors.grey.shade700,
                         fontWeight: _isMaleVoice ? FontWeight.bold : FontWeight.normal,
                       ),
+                      side: BorderSide.none,
                     ),
                   ),
-                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => _onVoiceTypeChanged(false),
                     child: Chip(
-                      label: Text('👩 여성'),
+                      visualDensity: VisualDensity.compact,
+                      label: Text('👩 여성', style: TextStyle(fontSize: 12)),
                       backgroundColor: !_isMaleVoice ? AppTheme.primaryColor.withValues(alpha: 0.2) : Colors.grey.shade200,
                       labelStyle: TextStyle(
                         color: !_isMaleVoice ? AppTheme.primaryColor : Colors.grey.shade700,
                         fontWeight: !_isMaleVoice ? FontWeight.bold : FontWeight.normal,
                       ),
+                      side: BorderSide.none,
                     ),
                   ),
                 ],

@@ -60,6 +60,7 @@ class SermonProvider extends ChangeNotifier {
       if (userId != null) {
         try {
           await Supabase.instance.client.from('saved_sermons').insert({
+            'id': sermon.id, // 임시 생성된 ID를 명시적으로 사용 (UUID가 아닐 경우에도 대비)
             'user_id': userId,
             'title': sermon.title,
             'verse': sermon.verse,

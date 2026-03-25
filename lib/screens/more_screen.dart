@@ -10,6 +10,83 @@ import 'package:ai_canaan_church/screens/auth/login_screen.dart';
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
+  void _handleDeleteAccount(BuildContext context) async {
+    // 1단계 확인
+    final step1 = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('계정 삭제', style: GoogleFonts.notoSansKr(fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(
+          '계정을 삭제하면 모든 데이터(설교, 기도제목 등)가 영구적으로 삭제됩니다.\n\n정말 삭제하시겠습니까?',
+          style: GoogleFonts.notoSansKr(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('취소', style: GoogleFonts.notoSansKr(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('계속', style: GoogleFonts.notoSansKr(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (step1 != true || !context.mounted) return;
+
+    // 2단계 최종 확인
+    final step2 = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('최종 확인', style: GoogleFonts.notoSansKr(fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(
+          '이 작업은 되돌릴 수 없습니다.\n계정을 영구 삭제합니다.',
+          style: GoogleFonts.notoSansKr(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('취소', style: GoogleFonts.notoSansKr(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('계정 삭제', style: GoogleFonts.notoSansKr(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (step2 != true || !context.mounted) return;
+
+    // 로딩 표시
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final result = await AuthService.deleteAccount();
+
+    if (!context.mounted) return;
+    Navigator.of(context).pop(); // 로딩 닫기
+
+    if (result.success) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message, style: GoogleFonts.notoSansKr()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _handleLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -159,13 +236,24 @@ class MoreScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // 메뉴 섹션 2
+          // 메뉴 섹션 2 (계정 관련 위험 영역)
           Container(
             color: Colors.white,
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: Text('로그아웃', style: notoSansKr.copyWith(color: Colors.red)),
-              onTap: () => _handleLogout(context),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: Text('로그아웃', style: notoSansKr.copyWith(color: Colors.red)),
+                  onTap: () => _handleLogout(context),
+                ),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFF5F5F5)),
+                ListTile(
+                  leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+                  title: Text('계정 삭제', style: notoSansKr.copyWith(color: Colors.red)),
+                  subtitle: Text('모든 데이터가 영구 삭제됩니다', style: notoSansKr.copyWith(color: Colors.grey, fontSize: 12)),
+                  onTap: () => _handleDeleteAccount(context),
+                ),
+              ],
             ),
           ),
         ],

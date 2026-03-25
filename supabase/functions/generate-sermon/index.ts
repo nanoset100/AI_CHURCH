@@ -11,36 +11,43 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization')
-    const supabaseClient = createClient(
+    if (!authHeader) throw new Error('인증 헤더가 없습니다.')
+
+    // 사용자 인증 확인용 클라이언트 (anon key + 사용자 JWT)
+    const userClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // 사용량 업데이트를 위해 서비스 롤 키 사용
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     )
 
-    // 실제 요청한 유저 정보 가져오기 (JWT 필수)
-    const { data: { user } } = await supabaseClient.auth.getUser()
-    if (!user) throw new Error('인증되지 않은 유저입니다.')
+    // 실제 요청한 유저 정보 가져오기 (JWT 검증)
+    const { data: { user }, error: authError } = await userClient.auth.getUser()
+    if (authError || !user) throw new Error('인증되지 않은 유저입니다.')
 
-    // --- [추가 코드] 사용량 체크 (하루 5회 제한 예시) ---
-    // RPC 호출 (check_and_increment_ai_usage)
-    const { data: isAllowed, error: rpcError } = await supabaseClient.rpc('check_and_increment_ai_usage', {
+    // 사용량 체크용 서비스 롤 클라이언트 (관리자 권한)
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
+
+    // 사용량 체크 (하루 5회 제한)
+    const { data: isAllowed, error: rpcError } = await serviceClient.rpc('check_and_increment_ai_usage', {
       user_id: user.id,
-      max_limit: 5 // 여기에 하루 최대 생성 가능 횟수를 설정하세요
+      max_limit: 5
     })
 
     if (rpcError) throw new Error('사용량 확인 중 서버 오류가 발생했습니다.')
     if (!isAllowed) {
       return new Response(JSON.stringify({ error: '오늘 생성 한도를 초과했습니다. (하루 5회)' }), {
-        status: 429, // Too Many Requests
+        status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    // ----------------------------------------------
 
     const { topic, situation, length, tone, keyword } = await req.json()
     const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${openAiApiKey}`, 
@@ -62,12 +69,26 @@ serve(async (req) => {
       }),
     })
 
-    const data = await response.json()
-    return new Response(JSON.stringify(data.choices[0].message.content), {
+    const data = await openAiResponse.json()
+    
+    // OpenAI 응답 content는 JSON 문자열 → JSON.parse() 필수
+    const rawContent = data.choices[0].message.content
+    let sermonData: { title: string; verse: string; content: string }
+    
+    try {
+      // content가 ```json ... ``` 형태로 감싸진 경우 제거 후 파싱
+      const cleaned = rawContent.replace(/```json\n?|\n?```/g, '').trim()
+      sermonData = JSON.parse(cleaned)
+    } catch (_e) {
+      throw new Error('AI 응답 파싱 실패: ' + rawContent)
+    }
+
+    return new Response(JSON.stringify(sermonData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
+    const errMsg = error instanceof Error ? error.message : String(error)
+    return new Response(JSON.stringify({ error: errMsg }), { 
       status: 400, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     })
