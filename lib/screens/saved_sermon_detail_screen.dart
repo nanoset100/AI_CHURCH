@@ -28,6 +28,8 @@ class _SavedSermonDetailScreenState extends State<SavedSermonDetailScreen> {
   bool _isLoadingAudio = false;
   bool _isMaleVoice = true; // 저장 시 성별을 모를 수 있으므로 기본값 남성
   bool _isCached = false;
+  bool _hasAudioLoaded = false;
+  PlayerState _playerState = PlayerState.stopped;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
