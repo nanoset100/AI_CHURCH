@@ -321,5 +321,4 @@ class _PrayerRequestsScreenState extends State<PrayerRequestsScreen> {
       },
     );
   }
-  }
 }

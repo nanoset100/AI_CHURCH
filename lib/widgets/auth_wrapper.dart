@@ -26,7 +26,7 @@ class AuthWrapper extends StatelessWidget {
             }
 
             final session = snapshot.data?.session;
-            final user = snapshot.data?.user;
+            final user = session?.user;
 
             // 1. 세션과 사용자가 모두 유효한 경우 MainScreen 표시
             if (session != null && user != null) {
