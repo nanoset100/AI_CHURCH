@@ -21,12 +21,17 @@ class AiService {
       }
 
       // ✅ 2단계: JWT 토큰 갱신 (만료 방지)
-      try {
-        await Supabase.instance.client.auth.refreshSession();
-        debugPrint('✅ JWT 토큰 갱신 성공');
-      } catch (refreshError) {
-        debugPrint('⚠️ 토큰 갱신 실패 (기존 세션으로 재시도): $refreshError');
-        // 갱신 실패해도 기존 세션으로 시도 (완전히 만료된 경우에만 401 발생)
+      // 세션이 살아있는지 확인하고, 만료가 임박했다면 갱신 시도
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null || session.isExpired) {
+        try {
+          await Supabase.instance.client.auth.refreshSession();
+          debugPrint('✅ JWT 토큰 갱신 성공');
+        } catch (refreshError) {
+          debugPrint('❌ 세션 갱신 실패: $refreshError');
+          await Supabase.instance.client.auth.signOut();
+          throw Exception('로그인 세션이 만료되었습니다. 앱을 재시작하거나 다시 로그인해 주세요.');
+        }
       }
 
       // ✅ 3단계: Edge Function 호출
@@ -71,8 +76,9 @@ class AiService {
           keyword: keyword,
           createdAt: DateTime.now(),
         );
-      } else if (response.status == 401) {
-        // ✅ 401 전용 처리: 세션 만료 안내
+      } else if (response.status == 401 || response.status == 403) {
+        // ✅ 401/403 전용 처리: 강제 로그아웃 트리거하여 LoginScreen으로 리다이렉트
+        await Supabase.instance.client.auth.signOut();
         throw Exception('로그인 세션이 만료되었습니다. 앱을 재시작하거나 다시 로그인해 주세요.');
       } else if (response.status == 429) {
         // ✅ 429 처리: 사용 한도 초과
@@ -83,11 +89,16 @@ class AiService {
     } on FunctionException catch (e) {
       // ✅ FunctionException 전용 처리 (401 포함)
       debugPrint('FunctionException: status=${e.status}, details=${e.details}');
-      if (e.status == 401) {
+      if (e.status == 401 || e.status == 403) {
+        await Supabase.instance.client.auth.signOut();
         throw Exception('로그인 세션이 만료되었습니다. 앱을 재시작하거나 다시 로그인해 주세요.');
       }
       throw Exception('설교 생성 중 오류가 발생했습니다: ${e.details}');
     } catch (e) {
+      if (e.toString().contains('401') || e.toString().contains('403')) {
+        await Supabase.instance.client.auth.signOut();
+        throw Exception('로그인 세션이 만료되었습니다. 앱을 재시작하거나 다시 로그인해 주세요.');
+      }
       throw Exception('설교 생성 중 오류가 발생했습니다: $e');
     }
   }

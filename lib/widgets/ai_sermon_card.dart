@@ -1,10 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:ai_canaan_church/providers/auth_provider.dart';
+import 'package:ai_canaan_church/screens/auth/login_screen.dart';
 import 'package:ai_canaan_church/screens/ai_sermon_dialog.dart';
 
 /// AI 설교 만들기 카드 - 핵심 기능 (시각적으로 강조)
 class AiSermonCard extends StatelessWidget {
   const AiSermonCard({super.key});
+
+  void _showLoginRequiredDialog(BuildContext context) {
+    final notoSansKr = GoogleFonts.notoSansKr();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('로그인 필요', style: notoSansKr.copyWith(fontWeight: FontWeight.bold)),
+        content: Text('AI 맞춤 설교 만들기는 로그인이 필요한 기능입니다. 로그인하시겠습니까?', style: notoSansKr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('나중에', style: notoSansKr.copyWith(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // 게스트 모드 해제 및 로그인 화면으로 이동
+              Provider.of<AuthProvider>(context, listen: false).setGuestMode(false);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7F7FD5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('로그인하기', style: notoSansKr.copyWith(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +45,13 @@ class AiSermonCard extends StatelessWidget {
     
     return GestureDetector(
       onTap: () {
+        final authProv = Provider.of<AuthProvider>(context, listen: false);
+        
+        if (authProv.currentUser == null) {
+          _showLoginRequiredDialog(context);
+          return;
+        }
+
         // AI 설교 생성 다이얼로그 열기
         showDialog(
           context: context,

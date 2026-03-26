@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/providers/prayer_provider.dart';
+import 'package:ai_canaan_church/providers/auth_provider.dart';
 
 class PrayerRequestsScreen extends StatefulWidget {
   const PrayerRequestsScreen({super.key});
@@ -147,6 +148,8 @@ class _PrayerRequestsScreenState extends State<PrayerRequestsScreen> {
   Widget build(BuildContext context) {
     final notoSansKr = GoogleFonts.notoSansKr();
 
+    final authProv = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -163,111 +166,160 @@ class _PrayerRequestsScreenState extends State<PrayerRequestsScreen> {
         iconTheme: const IconThemeData(color: AppTheme.textColor),
         centerTitle: true,
       ),
-      body: Consumer<PrayerProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.prayerRequests.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
-          }
+      body: authProv.currentUser == null
+          ? _buildGuestUI(context, notoSansKr, authProv)
+          : _buildPrayerList(notoSansKr),
+      floatingActionButton: authProv.currentUser == null 
+          ? null 
+          : FloatingActionButton(
+              onPressed: _showAddPrayerDialog,
+              backgroundColor: AppTheme.primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+    );
+  }
 
-          if (provider.errorMessage != null && provider.prayerRequests.isEmpty) {
-            return Center(
+  Widget _buildGuestUI(BuildContext context, TextStyle notoSansKr, AuthProvider authProv) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🙏', style: TextStyle(fontSize: 64)),
+            const SizedBox(height: 24),
+            Text(
+              '로그인이 필요합니다',
+              style: notoSansKr.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '나만의 기도제목을 기록하고 응답 받은\n역사를 간직하려면 로그인해 보세요.',
+              textAlign: TextAlign.center,
+              style: notoSansKr.copyWith(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 48),
+            ElevatedButton(
+              onPressed: () {
+                authProv.setGuestMode(false);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
               child: Text(
-                provider.errorMessage!,
-                style: notoSansKr.copyWith(color: Colors.red),
+                '로그인/회원가입 하기',
+                style: notoSansKr.copyWith(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-            );
-          }
-
-          if (provider.prayerRequests.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('🙏', style: TextStyle(fontSize: 64)),
-                  const SizedBox(height: 16),
-                  Text(
-                    '앗, 아직 작성된 기도제목이 없네요!',
-                    style: notoSansKr.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '오른쪽 아래 + 버튼을 눌러 첫 기도를 남겨보세요.',
-                    style: notoSansKr.copyWith(color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.prayerRequests.length,
-            itemBuilder: (context, index) {
-              final prayer = provider.prayerRequests[index];
-              return Dismissible(
-                key: Key(prayer.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                onDismissed: (_) {
-                  provider.deletePrayerRequest(prayer.id);
-                },
-                child: Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: prayer.isAnswered ? Colors.green.shade200 : Colors.grey.shade200,
-                    ),
-                  ),
-                  color: prayer.isAnswered ? Colors.green.shade50 : Colors.white,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getCategoryColor(prayer.category),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        prayer.category,
-                        style: notoSansKr.copyWith(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    title: Text(
-                      prayer.title,
-                      style: notoSansKr.copyWith(
-                        fontWeight: FontWeight.bold,
-                        decoration: prayer.isAnswered ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                    trailing: Switch(
-                      value: prayer.isAnswered,
-                      onChanged: (val) {
-                        provider.toggleAnsweredStatus(prayer.id, prayer.isAnswered);
-                      },
-                      activeColor: Colors.green,
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPrayerDialog,
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildPrayerList(TextStyle notoSansKr) {
+    return Consumer<PrayerProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading && provider.prayerRequests.isEmpty) {
+          return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+        }
+
+        if (provider.errorMessage != null && provider.prayerRequests.isEmpty) {
+          return Center(
+            child: Text(
+              provider.errorMessage!,
+              style: notoSansKr.copyWith(color: Colors.red),
+            ),
+          );
+        }
+
+        if (provider.prayerRequests.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🙏', style: TextStyle(fontSize: 64)),
+                const SizedBox(height: 16),
+                Text(
+                  '앗, 아직 작성된 기도제목이 없네요!',
+                  style: notoSansKr.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '오른쪽 아래 + 버튼을 눌러 첫 기도를 남겨보세요.',
+                  style: notoSansKr.copyWith(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: provider.prayerRequests.length,
+          itemBuilder: (context, index) {
+            final prayer = provider.prayerRequests[index];
+            return Dismissible(
+              key: Key(prayer.id),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              onDismissed: (_) {
+                provider.deletePrayerRequest(prayer.id);
+              },
+              child: Card(
+                elevation: 0,
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: prayer.isAnswered ? Colors.green.shade200 : Colors.grey.shade200,
+                  ),
+                ),
+                color: prayer.isAnswered ? Colors.green.shade50 : Colors.white,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getCategoryColor(prayer.category),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      prayer.category,
+                      style: notoSansKr.copyWith(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  title: Text(
+                    prayer.title,
+                    style: notoSansKr.copyWith(
+                      fontWeight: FontWeight.bold,
+                      decoration: prayer.isAnswered ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  trailing: Switch(
+                    value: prayer.isAnswered,
+                    onChanged: (val) {
+                      provider.toggleAnsweredStatus(prayer.id, prayer.isAnswered);
+                    },
+                    activeColor: Colors.green,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
   }
 }

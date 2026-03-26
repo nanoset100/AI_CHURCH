@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:ai_canaan_church/theme/app_theme.dart';
 import 'package:ai_canaan_church/services/auth_service.dart';
+import 'package:ai_canaan_church/providers/auth_provider.dart';
 import 'package:ai_canaan_church/screens/main_screen.dart';
 import 'package:ai_canaan_church/screens/auth/signup_screen.dart';
 
@@ -50,10 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (result.success) {
-      // 로그인 성공 시 즉시 MainScreen으로 이동
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
+      // 로그인 성공 시 AuthWrapper가 상태 변화를 감지하여 자동으로 MainScreen으로 전환합니다.
     } else {
       setState(() {
         _errorMessage = result.message;
@@ -289,6 +288,48 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 32),
+                
+                // 구분선
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        '또는',
+                        style: notoSansKr.copyWith(fontSize: 12, color: Colors.grey.shade500),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // 로그인 없이 둘러보기 버튼 (Apple Guideline 5.1.1(v) 준수)
+                SizedBox(
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Provider.of<AuthProvider>(context, listen: false).setGuestMode(true);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      '로그인 없이 시작하기',
+                      style: notoSansKr.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
               ],
             ),
           ),

@@ -1,7 +1,7 @@
 name: ai_canaan_church
 description: AI 가나안교회 - 어디서나 함께하는 당신만의 영적 안식처
 publish_to: 'none'
-version: 1.0.1+3
+version: 1.0.2+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

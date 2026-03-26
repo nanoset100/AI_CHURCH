@@ -45,6 +45,11 @@ class AudioService {
           return response.data as Uint8List;
         }
         return null;
+      } else if (response.status == 401) {
+        // ✅ 401 전용 처리: 강제 로그아웃 트리거하여 자동 리다이렉션 유도
+        await Supabase.instance.client.auth.signOut();
+        debugPrint('Edge Function TTS Error: Unauthorized (401)');
+        return null;
       } else {
         debugPrint('Edge Function TTS Error: ${response.status} - ${response.data}');
         return null;

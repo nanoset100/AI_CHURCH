@@ -12,17 +12,29 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  // 게스트 모드 (비로그인 둘러보기) 상태
+  bool _isGuestMode = false;
+  bool get isGuestMode => _isGuestMode;
+
   AuthProvider() {
     _initDisplayName();
     // 인증 상태 변경 리스너 등록
     _supabase.auth.onAuthStateChange.listen((data) {
       if (data.event == AuthChangeEvent.signedIn || data.event == AuthChangeEvent.tokenRefreshed) {
+        _isGuestMode = false; // 로그인 시 게스트 모드 해제
         _initDisplayName();
       } else if (data.event == AuthChangeEvent.signedOut) {
         _displayName = null;
+        _isGuestMode = false; // 로그아웃 시 게스트 모드 초기화
         notifyListeners();
       }
     });
+  }
+
+  /// 게스트 모드 설정
+  void setGuestMode(bool value) {
+    _isGuestMode = value;
+    notifyListeners();
   }
 
   Future<void> _initDisplayName() async {
