@@ -25,8 +25,8 @@ void main() async {
   // Supabase 설정 검증
   if (!EnvConfig.isConfigured) {
     runApp(_SupabaseConfigErrorApp(
-      message: 'Supabase URL 또는 Anon Key가 .env에 올바르게 설정되지 않았습니다.\n'
-          'Supabase 대시보드 > Settings > API에서 값을 복사해 .env 파일을 수정하세요.',
+      message: 'Supabase URL 또는 Anon Key가 설정되지 않았습니다.\n'
+          '.env 파일이나 --dart-define 설정을 확인해 주세요.',
     ));
     return;
   }
