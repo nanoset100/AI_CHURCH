@@ -26,6 +26,11 @@ workflows:
       - name: Flutter pub get
         script: flutter pub get
 
+      - name: Pod install              # Podfile.lock 동기화 (없으면 sandbox 오류!)
+        script: |
+          cd ios
+          pod install
+
       - name: Xcode 서명 설정 적용       # 없으면 "No valid code signing" 오류!
         script: xcode-project use-profiles
 
