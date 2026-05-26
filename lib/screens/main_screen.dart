@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ai_canaan_church/screens/home_screen.dart';
-import 'package:ai_canaan_church/screens/saved_sermons_list_screen.dart';
-import 'package:ai_canaan_church/screens/prayer_requests_screen.dart';
-import 'package:ai_canaan_church/screens/more_screen.dart';
-import 'package:ai_canaan_church/widgets/bottom_nav_bar.dart';
-import 'package:ai_canaan_church/screens/bible_reading_screen.dart';
+import '../theme/app_theme.dart';
+import 'today/today_screen.dart';
+import 'search/search_screen.dart';
+import 'prayer/prayer_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,38 +12,41 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _index = 0;
 
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      const HomeScreen(),
-      const SavedSermonsListScreen(),
-      const BibleReadingScreen(),
-      const PrayerRequestsScreen(),
-      const MoreScreen(),
-    ];
-  }
-
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
+  final _screens = const [
+    TodayScreen(),
+    SearchScreen(),
+    PrayerScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+      body: IndexedStack(index: _index, children: _screens),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        backgroundColor: AppTheme.surface,
+        indicatorColor: AppTheme.primary.withValues(alpha: 0.12),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: const [
+          NavigationDestination(
+            icon:         Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book, color: AppTheme.primary),
+            label: '오늘의 말씀',
+          ),
+          NavigationDestination(
+            icon:         Icon(Icons.search_outlined),
+            selectedIcon: Icon(Icons.search, color: AppTheme.primary),
+            label: '말씀 찾기',
+          ),
+          NavigationDestination(
+            icon:         Icon(Icons.edit_note_outlined),
+            selectedIcon: Icon(Icons.edit_note, color: AppTheme.primary),
+            label: '기도 노트',
+          ),
+        ],
       ),
     );
   }

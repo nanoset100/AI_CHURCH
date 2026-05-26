@@ -1,0 +1,26 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "daily-wordnote",
+          "appId": "1:169245869660:android:8ab640a977134397070899",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "daily-wordnote",
+          "configurations": {
+            "android": "1:169245869660:android:8ab640a977134397070899",
+            "ios": "1:169245869660:ios:fb16abd78182bfdd070899"
+          }
+        }
+      }
+    }
+  }
+}

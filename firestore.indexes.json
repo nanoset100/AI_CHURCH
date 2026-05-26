@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "public_sermons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic",      "order": "ASCENDING" },
+        { "fieldPath": "broadcastDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_sermons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic",      "order": "ASCENDING" },
+        { "fieldPath": "broadcastDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_sermons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "region",        "order": "ASCENDING" },
+        { "fieldPath": "isPublic",      "order": "ASCENDING" },
+        { "fieldPath": "broadcastDate", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

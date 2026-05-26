@@ -1,36 +1,34 @@
 name: ai_canaan_church
-description: AI 가나안교회 - 어디서나 함께하는 당신만의 영적 안식처
+description: 가나안 성도를 위한 말씀 묵상 앱 - 극동방송 AI 설교 요약으로 혼자 예배드려요
 publish_to: 'none'
-version: 1.0.3+7
+version: 2.1.0+11
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^6.1.0
-  supabase_flutter: ^2.5.0
-  flutter_dotenv: ^5.1.0
+  firebase_core: ^3.6.0
+  cloud_firestore: ^5.4.0
   provider: ^6.1.1
-  http: ^1.6.0
-  audioplayers: ^6.6.0
-  path_provider: ^2.1.5
-  share_plus: ^12.0.1
-  url_launcher: ^6.3.1
-  intl: ^0.20.2
+  google_fonts: ^6.1.0
+  shared_preferences: ^2.3.0
+  share_plus: ^10.0.0
+  intl: ^0.19.0
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.0
 
 flutter:
   uses-material-design: true
   assets:
-    - .env
-    - assets/audio/bgm.mp3
+    - assets/icon/
+    - assets/images/
 
 flutter_launcher_icons:
   android: true

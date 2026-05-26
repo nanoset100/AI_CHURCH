@@ -1,168 +1,112 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:ai_canaan_church/models/sermon.dart';
-import 'package:ai_canaan_church/services/ai_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/public_sermon_model.dart';
+import '../services/sermon_service.dart';
 
-/// 설교 상태 관리 Provider
 class SermonProvider extends ChangeNotifier {
-  final List<Sermon> _savedSermons = [];
-  bool _isGenerating = false;
-  Sermon? _currentSermon;
-  String? _errorMessage;
+  PublicSermonModel?       _todaySermon;
+  List<PublicSermonModel>  _weekSermons    = [];
+  List<PublicSermonModel>  _searchResults  = [];
+  bool                     _isTodayLoading  = false;
+  bool                     _isSearchLoading = false;
+  String?                  _error;
 
-  List<Sermon> get savedSermons => List.unmodifiable(_savedSermons);
-  bool get isGenerating => _isGenerating;
-  Sermon? get currentSermon => _currentSermon;
-  String? get errorMessage => _errorMessage;
-  int get sermonCount => _savedSermons.length;
+  // 검색어 + 지역 필터 상태 관리
+  String  _currentKeyword = '';
+  String  _currentRegion  = '전체';
+  Timer?  _debounce;
 
-  /// AI 설교 생성
-  Future<Sermon?> generateSermon({
-    required String topic,
-    String? situation,
-    required String length,
-    String? tone,
-    String? keyword,
-  }) async {
-    _isGenerating = true;
-    _errorMessage = null;
-    _currentSermon = null;
+  PublicSermonModel?       get todaySermon    => _todaySermon;
+  List<PublicSermonModel>  get weekSermons    => _weekSermons;
+  List<PublicSermonModel>  get searchResults  => _searchResults;
+  bool                     get isTodayLoading  => _isTodayLoading;
+  bool                     get isSearchLoading => _isSearchLoading;
+  // SearchScreen에서 isLoading으로 접근하도록 alias 제공
+  bool                     get isLoading       => _isSearchLoading;
+  String?                  get error           => _error;
+
+  // ── 오늘의 말씀 로드 ─────────────────────────────
+  Future<void> loadToday() async {
+    _isTodayLoading = true;
+    _error = null;
     notifyListeners();
 
-    try {
-      // AI 서비스를 통해 설교 생성
-      final sermon = await AiService.generateSermon(
-        topic: topic,
-        situation: situation,
-        length: length,
-        tone: tone,
-        keyword: keyword,
-      );
+    _todaySermon = await SermonService.getTodaySermon();
+    _weekSermons = await SermonService.getWeekSermons();
 
-      _currentSermon = sermon;
-      _isGenerating = false;
-      notifyListeners();
-
-      return sermon;
-    } catch (e) {
-      _errorMessage = '설교 생성 중 오류가 발생했습니다: ${e.toString()}';
-      _isGenerating = false;
-      notifyListeners();
-      return null;
+    // Firebase에 데이터 없으면 Mock 폴백
+    if (_todaySermon == null) {
+      final mocks = SermonService.getMockData();
+      _todaySermon = mocks.first;
+      _weekSermons = mocks;
     }
-  }
 
-  /// 설교 저장
-  Future<bool> saveSermon(Sermon sermon) async {
-    try {
-      // Supabase에 저장 시도
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId != null) {
-        try {
-          await Supabase.instance.client.from('saved_sermons').insert({
-            'id': sermon.id, // 임시 생성된 ID를 명시적으로 사용 (UUID가 아닐 경우에도 대비)
-            'user_id': userId,
-            'title': sermon.title,
-            'verse': sermon.verse,
-            'content': sermon.content,
-            'user_prompt': sermon.userPrompt,
-            'created_at': sermon.createdAt.toIso8601String(),
-            'topic': sermon.topic,
-            'situation': sermon.situation,
-            'length': sermon.length,
-            'tone': sermon.tone,
-            'keyword': sermon.keyword,
-            'audio_url': sermon.audioUrl,
-          });
-        } catch (e) {
-          debugPrint('Supabase 저장 실패, 로컬 저장으로 대체: $e');
-        }
-      }
-
-      // 로컬에도 저장 (Supabase 실패 시 대비)
-      _savedSermons.insert(0, sermon);
-      notifyListeners();
-
-      return true;
-    } catch (e) {
-      _errorMessage = '설교 저장 중 오류가 발생했습니다: ${e.toString()}';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// 설교 삭제
-  Future<bool> deleteSermon(String sermonId) async {
-    try {
-      // Supabase에서 삭제 시도
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId != null) {
-        try {
-          await Supabase.instance.client
-              .from('saved_sermons')
-              .delete()
-              .eq('id', sermonId)
-              .eq('user_id', userId);
-        } catch (e) {
-          debugPrint('Supabase 삭제 실패, 로컬 삭제로 대체: $e');
-        }
-      }
-
-      // 로컬에서도 삭제
-      _savedSermons.removeWhere((s) => s.id == sermonId);
-      notifyListeners();
-
-      return true;
-    } catch (e) {
-      _errorMessage = '설교 삭제 중 오류가 발생했습니다: ${e.toString()}';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// 저장된 설교 로드 (Supabase에서)
-  Future<void> loadSavedSermons() async {
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
-        return;
-      }
-
-      final response = await Supabase.instance.client
-          .from('saved_sermons')
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
-      _savedSermons.clear();
-      for (final item in response) {
-        _savedSermons.add(Sermon(
-          id: item['id'].toString(),
-          title: item['title'] as String,
-          verse: item['verse'] as String,
-          content: item['content'] as String,
-          userPrompt: item['user_prompt'] as String,
-          createdAt: DateTime.parse(item['created_at'] as String),
-          topic: item['topic'] as String?,
-          situation: item['situation'] as String?,
-          length: item['length'] as String?,
-          tone: item['tone'] as String?,
-          keyword: item['keyword'] as String?,
-          audioUrl: item['audio_url'] as String?,
-        ));
-      }
-
-      notifyListeners();
-    } catch (e) {
-      debugPrint('저장된 설교 로드 실패: $e');
-      // 로컬 저장소에서 로드 시도 (추후 구현)
-    }
-  }
-
-  /// 현재 설교 초기화
-  void clearCurrentSermon() {
-    _currentSermon = null;
-    _errorMessage = null;
+    _isTodayLoading = false;
     notifyListeners();
+  }
+
+  // ── 검색 (300ms 디바운스) ──────────────────────────
+  Future<void> search(String keyword) async {
+    _currentKeyword = keyword;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _applyFilters();
+    });
+  }
+
+  // ── 지역 필터 ─────────────────────────────────────
+  Future<void> filterByRegion(String region) async {
+    _currentRegion = region;
+    await _applyFilters();
+  }
+
+  // ── 복합 필터 적용 (검색어 + 지역) ───────────────────
+  Future<void> _applyFilters() async {
+    _isSearchLoading = true;
+    notifyListeners();
+
+    List<PublicSermonModel> base;
+
+    if (_currentRegion == '전체') {
+      base = await SermonService.getRecentSermons(limit: 200);
+    } else {
+      base = await SermonService.getByRegion(_currentRegion);
+    }
+
+    if (_currentKeyword.trim().isNotEmpty) {
+      final q = _currentKeyword.toLowerCase();
+      base = base.where((s) =>
+        s.title.toLowerCase().contains(q)      ||
+        s.bibleVerse.toLowerCase().contains(q) ||
+        s.pastor.toLowerCase().contains(q)     ||
+        s.churchName.toLowerCase().contains(q) ||
+        s.region.toLowerCase().contains(q)
+      ).toList();
+    }
+
+    _searchResults = base;
+    _isSearchLoading = false;
+    notifyListeners();
+  }
+
+  // ── 최근 목록 (초기 로드) ──────────────────────────
+  Future<void> loadRecent() async {
+    _currentKeyword = '';
+    _isSearchLoading = true;
+    notifyListeners();
+
+    _searchResults = await SermonService.getRecentSermons();
+    if (_searchResults.isEmpty) {
+      _searchResults = SermonService.getMockData();
+    }
+
+    _isSearchLoading = false;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 }

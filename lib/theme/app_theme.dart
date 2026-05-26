@@ -2,48 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // PRD 기준 색상
-  static const Color primaryColor = Color(0xFF4A90E2); // 신뢰감 있는 파란색
-  static const Color secondaryColor = Color(0xFFF5F5DC); // 따뜻한 베이지
-  static const Color textColor = Color(0xFF333333);
-  static const Color backgroundColor = Color(0xFFFAFAFA);
+  static const primary    = Color(0xFF5C7A5C);
+  static const accent     = Color(0xFFB5855A);
+  static const background = Color(0xFFF9F6F0);
+  static const surface    = Color(0xFFFFFFFF);
+  static const textDark   = Color(0xFF3D3530);
+  static const textMid    = Color(0xFF7A6E68);
+  static const textLight  = Color(0xFFB0A49E);
+  static const divider    = Color(0xFFE8E0D8);
 
-  static ThemeData get lightTheme {
-    // Noto Sans KR 폰트 강제 로드
-    final notoSansKr = GoogleFonts.notoSansKr();
-    
+  static ThemeData get theme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        primary: primaryColor,
-        secondary: secondaryColor,
-        surface: backgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: primary,
+        secondary: accent,
+        surface: surface,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: textDark,
       ),
-      scaffoldBackgroundColor: backgroundColor,
-      // 전역 폰트 강제 설정
-      fontFamily: notoSansKr.fontFamily,
-      // 모든 텍스트 스타일에 한글 폰트 강제 적용
-      textTheme: GoogleFonts.notoSansKrTextTheme(
-        ThemeData.light().textTheme,
-      ).copyWith(
-        displayLarge: GoogleFonts.notoSansKr(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: textColor,
+      scaffoldBackgroundColor: background,
+      textTheme: GoogleFonts.notoSansKrTextTheme().apply(
+        bodyColor: textDark,
+        displayColor: textDark,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: GoogleFonts.notoSansKr(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
-        displayMedium: GoogleFonts.notoSansKr(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: textColor,
+      ),
+      cardTheme: CardThemeData(
+        color: surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: divider, width: 1),
         ),
-        bodyLarge: GoogleFonts.notoSansKr(
-          fontSize: 16,
-          color: textColor,
-        ),
-        bodyMedium: GoogleFonts.notoSansKr(
-          fontSize: 14,
-          color: textColor,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
     );
   }
