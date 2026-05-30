@@ -4,28 +4,28 @@ import '../models/public_sermon_model.dart';
 import '../services/sermon_service.dart';
 
 class SermonProvider extends ChangeNotifier {
-  PublicSermonModel?       _todaySermon;
-  List<PublicSermonModel>  _weekSermons    = [];
-  List<PublicSermonModel>  _searchResults  = [];
-  bool                     _isTodayLoading  = false;
-  bool                     _isSearchLoading = false;
-  String?                  _error;
+  PublicSermonModel? _todaySermon;
+  List<PublicSermonModel> _weekSermons = [];
+  List<PublicSermonModel> _searchResults = [];
+  bool _isTodayLoading = false;
+  bool _isSearchLoading = false;
+  String? _error;
 
   // 검색어 + 지역 필터 상태 관리
-  String  _currentKeyword = '';
-  String  _currentRegion  = '전체';
-  Timer?  _debounce;
+  String _currentKeyword = '';
+  String _currentRegion = '전체';
+  Timer? _debounce;
 
-  PublicSermonModel?       get todaySermon    => _todaySermon;
-  List<PublicSermonModel>  get weekSermons    => _weekSermons;
-  List<PublicSermonModel>  get searchResults  => _searchResults;
-  bool                     get isTodayLoading  => _isTodayLoading;
-  bool                     get isSearchLoading => _isSearchLoading;
+  PublicSermonModel? get todaySermon => _todaySermon;
+  List<PublicSermonModel> get weekSermons => _weekSermons;
+  List<PublicSermonModel> get searchResults => _searchResults;
+  bool get isTodayLoading => _isTodayLoading;
+  bool get isSearchLoading => _isSearchLoading;
   // SearchScreen에서 isLoading으로 접근하도록 alias 제공
-  bool                     get isLoading       => _isSearchLoading;
-  String?                  get error           => _error;
+  bool get isLoading => _isSearchLoading;
+  String? get error => _error;
 
-  // ── 오늘의 말씀 로드 ─────────────────────────────
+  // ── 오늘 묵상할 최신 말씀 로드 ──────────────────────
   Future<void> loadToday() async {
     _isTodayLoading = true;
     _error = null;
@@ -34,7 +34,7 @@ class SermonProvider extends ChangeNotifier {
     _todaySermon = await SermonService.getTodaySermon();
     _weekSermons = await SermonService.getWeekSermons();
 
-    // Firebase에 데이터 없으면 Mock 폴백
+    // public_sermons가 비어 있거나 Firestore 조회가 실패했을 때만 Mock 폴백
     if (_todaySermon == null) {
       final mocks = SermonService.getMockData();
       _todaySermon = mocks.first;
@@ -75,13 +75,14 @@ class SermonProvider extends ChangeNotifier {
 
     if (_currentKeyword.trim().isNotEmpty) {
       final q = _currentKeyword.toLowerCase();
-      base = base.where((s) =>
-        s.title.toLowerCase().contains(q)      ||
-        s.bibleVerse.toLowerCase().contains(q) ||
-        s.pastor.toLowerCase().contains(q)     ||
-        s.churchName.toLowerCase().contains(q) ||
-        s.region.toLowerCase().contains(q)
-      ).toList();
+      base = base
+          .where((s) =>
+              s.title.toLowerCase().contains(q) ||
+              s.bibleVerse.toLowerCase().contains(q) ||
+              s.pastor.toLowerCase().contains(q) ||
+              s.churchName.toLowerCase().contains(q) ||
+              s.region.toLowerCase().contains(q))
+          .toList();
     }
 
     _searchResults = base;

@@ -5,48 +5,58 @@ class SermonService {
   static final _db = FirebaseFirestore.instance;
   static const _col = 'public_sermons';
 
-  // 오늘 방영 설교
+  // 오늘 앱에서 묵상할 최신 공개 설교
   static Future<PublicSermonModel?> getTodaySermon() async {
     try {
       final now = DateTime.now();
-      final start = DateTime(now.year, now.month, now.day);
-      final end = start.add(const Duration(days: 1));
-      final snap = await _db.collection(_col)
+      final snap = await _db
+          .collection(_col)
           .where('isPublic', isEqualTo: true)
-          .where('broadcastDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-          .where('broadcastDate', isLessThan: Timestamp.fromDate(end))
+          .where('broadcastDate', isLessThanOrEqualTo: Timestamp.fromDate(now))
+          .orderBy('broadcastDate', descending: true)
           .limit(1)
           .get();
       return snap.docs.isNotEmpty
           ? PublicSermonModel.fromFirestore(snap.docs.first)
           : null;
     } catch (e) {
+      final recent = await getRecentSermons(limit: 30);
+      for (final sermon in recent) {
+        if (!sermon.broadcastDate.isAfter(DateTime.now())) {
+          return sermon;
+        }
+      }
       return null;
     }
   }
 
-  // 이번 주 7일치
+  // 최근 공개 설교 7개
   static Future<List<PublicSermonModel>> getWeekSermons() async {
     try {
       final now = DateTime.now();
-      final start = DateTime(now.year, now.month, now.day)
-          .subtract(const Duration(days: 6));
-      final snap = await _db.collection(_col)
+      final snap = await _db
+          .collection(_col)
           .where('isPublic', isEqualTo: true)
-          .where('broadcastDate',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-          .orderBy('broadcastDate', descending: false)
+          .where('broadcastDate', isLessThanOrEqualTo: Timestamp.fromDate(now))
+          .orderBy('broadcastDate', descending: true)
+          .limit(7)
           .get();
       return snap.docs.map(PublicSermonModel.fromFirestore).toList();
     } catch (e) {
-      return [];
+      final recent = await getRecentSermons(limit: 30);
+      return recent
+          .where((sermon) => !sermon.broadcastDate.isAfter(DateTime.now()))
+          .take(7)
+          .toList();
     }
   }
 
   // 최근 30개
-  static Future<List<PublicSermonModel>> getRecentSermons({int limit = 30}) async {
+  static Future<List<PublicSermonModel>> getRecentSermons(
+      {int limit = 30}) async {
     try {
-      final snap = await _db.collection(_col)
+      final snap = await _db
+          .collection(_col)
           .where('isPublic', isEqualTo: true)
           .orderBy('broadcastDate', descending: true)
           .limit(limit)
@@ -61,19 +71,21 @@ class SermonService {
   static Future<List<PublicSermonModel>> search(String keyword) async {
     final all = await getRecentSermons(limit: 200);
     final q = keyword.toLowerCase();
-    return all.where((s) =>
-      s.title.toLowerCase().contains(q)      ||
-      s.bibleVerse.toLowerCase().contains(q) ||
-      s.pastor.toLowerCase().contains(q)     ||
-      s.churchName.toLowerCase().contains(q) ||
-      s.region.toLowerCase().contains(q)
-    ).toList();
+    return all
+        .where((s) =>
+            s.title.toLowerCase().contains(q) ||
+            s.bibleVerse.toLowerCase().contains(q) ||
+            s.pastor.toLowerCase().contains(q) ||
+            s.churchName.toLowerCase().contains(q) ||
+            s.region.toLowerCase().contains(q))
+        .toList();
   }
 
   // 지역 필터
   static Future<List<PublicSermonModel>> getByRegion(String region) async {
     try {
-      final snap = await _db.collection(_col)
+      final snap = await _db
+          .collection(_col)
           .where('region', isEqualTo: region)
           .where('isPublic', isEqualTo: true)
           .orderBy('broadcastDate', descending: true)

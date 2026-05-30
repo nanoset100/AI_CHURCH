@@ -14,7 +14,7 @@ class WeeklyStrip extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Text('이번 주 말씀',
+          child: Text('최근 말씀',
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

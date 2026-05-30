@@ -1,166 +1,116 @@
-# AI 가나안교회 (AI Canaan Church)
+# AI 가나안교회
 
-> **어디서나 함께하는 당신만의 영적 안식처**
+AI 가나안교회는 교회 밖에서도 말씀과 기도를 이어가고 싶은 사용자를 위한 Flutter 앱입니다. 현재 버전은 `daily-wordnote` Firebase 프로젝트의 `public_sermons` 설교 데이터를 가져와 오늘 묵상할 말씀, 최근 말씀 목록, 개인 기도 노트를 제공합니다.
 
-## 📖 프로젝트 개요
+## 현재 기능
 
-**AI 가나안교회**는 교회에 출석하지 않으나 신앙을 유지하는 '가나안 성도' 240만 명을 위한 비대면 영적 케어 플랫폼입니다. 개인 맞춤형 AI 설교와 일상의 영적 리듬을 제공하여 제도권의 틀을 벗어난 자유로운 신앙생활을 지원합니다.
+- **오늘의 말씀**: Firestore `public_sermons`에서 현재 시각 이전의 최신 공개 설교를 표시합니다.
+- **최근 말씀**: 최신 공개 설교 7개를 가로 목록으로 보여줍니다.
+- **말씀 찾기**: 최근 공개 설교를 키워드와 지역으로 검색합니다.
+- **기도 노트**: 로그인 없이 기기에 개인 기도 노트를 저장합니다.
+- **공유**: 설교 요약과 적용 내용을 공유할 수 있습니다.
 
-## ✨ 핵심 기능
+## 기술 스택
 
-### 1. AI 맞춤 설교 (핵심 기능)
-- 사용자의 현재 고민(육아, 직장, 고립감 등)을 입력하면 AI가 위로의 말씀과 설교를 생성
-- 3-5초의 자연스러운 생성 딜레이로 AI가 생각하는 듯한 UX 제공
-- 생성된 설교는 보관함에 저장하여 언제든 다시 볼 수 있음
+- Flutter / Dart
+- Firebase Core
+- Cloud Firestore
+- Provider
+- SharedPreferences
+- Google Fonts (Noto Sans KR)
+- Share Plus
 
-### 2. 홈 대시보드
-- **오늘의 예배**: 매일 새로운 예배 콘텐츠 제공
-- **오늘의 성경**: 일일 성경 읽기와 진행률 표시
-- **기도 제목**: 개인 기도 제목 관리
-- **주간 활동**: 예배, 성경 읽기, 연속 출석 기록 등 통계
+## 실행 방법
 
-### 3. 영적 보관함
-- 생성된 AI 설교를 안전하게 보관
-- Supabase와 로컬 이중 저장으로 데이터 안정성 보장
-- 저장된 설교를 언제든 다시 열람 가능
-
-## 🛠️ 기술 스택
-
-### 프론트엔드
-- **Flutter** (Dart): 크로스 플랫폼 네이티브 앱 개발
-- **Provider**: 상태 관리 (AI 설교 생성, 저장, 삭제 등)
-- **Google Fonts (Noto Sans KR)**: 한글 폰트 지원
-
-### 백엔드 & 인프라
-- **Supabase**: 
-  - 인증 (회원가입, 로그인, 세션 관리)
-  - 데이터베이스 (설교 저장, 프로필 관리)
-- **flutter_dotenv**: 환경 변수 관리 (API 키 보안)
-
-### 디자인
-- **테마**: 따뜻한 베이지(#F5F5DC)와 신뢰감 있는 파란색(#4A90E2)
-- **UI/UX**: 직관적이고 단순한 구성, 큰 폰트와 명확한 버튼 (시니어 친화적)
-
-## 📁 프로젝트 구조
-
+```bash
+flutter pub get
+flutter run
 ```
+
+Chrome에서 확인하려면:
+
+```bash
+flutter run -d chrome
+```
+
+## 검사 및 테스트
+
+```bash
+flutter analyze lib test
+flutter test
+dart format lib test
+```
+
+일반 개발 점검은 `lib/`와 `test/`를 기준으로 합니다. 저장소에는 `logosflow/chimshin`에서 가져온 참고 코드와 이전 Supabase 점검 스크립트가 남아 있어, 전체 저장소를 무작정 분석하면 현재 앱과 무관한 오류가 섞일 수 있습니다.
+
+## Firebase 데이터 구조
+
+현재 앱은 Firebase 프로젝트 `daily-wordnote`의 top-level 컬렉션 `public_sermons`를 사용합니다.
+
+주요 필드:
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| `isPublic` | `bool` | 공개 설교 여부 |
+| `broadcastDate` | `Timestamp` | 앱에 노출할 방송/공개 기준일 |
+| `churchName` | `String` | 교회 이름 |
+| `region` | `String` | 지역 |
+| `pastor` | `String` | 설교자 |
+| `title` | `String` | 설교 제목 |
+| `bibleVerse` | `String` | 본문 |
+| `summary` | `String` | 설교 요약 |
+| `application` | `String` | 오늘의 적용 |
+| `devotionals` | `Map<String, String>` | `day1`~`day6` 묵상, 선택 |
+| `sermonDate` | `Timestamp` | 실제 설교일 |
+| `createdAt` | `Timestamp` | 생성일 |
+| `source` | `String` | 출처 |
+
+첫 화면은 `broadcastDate`가 오늘인 문서만 찾지 않습니다. 매일 설교가 생성된다는 보장이 없기 때문에 `broadcastDate <= 현재 시각`인 공개 설교 중 가장 최신 문서를 보여줍니다.
+
+## 프로젝트 구조
+
+```text
 lib/
-├── config/
-│   └── env_config.dart          # 환경 변수 관리
+├── main.dart                  # Firebase 초기화 및 앱 진입점
+├── app.dart                   # Provider 등록 및 MaterialApp
+├── firebase_options.dart      # Firebase 프로젝트 설정
 ├── models/
-│   └── sermon.dart              # 설교 데이터 모델
+│   ├── public_sermon_model.dart
+│   └── prayer_note_model.dart
 ├── providers/
-│   └── sermon_provider.dart     # 설교 상태 관리 (Provider)
-├── screens/
-│   ├── home_screen.dart         # 홈 대시보드
-│   ├── auth/
-│   │   ├── login_screen.dart    # 로그인 화면
-│   │   └── signup_screen.dart   # 회원가입 화면
-│   ├── ai_sermon_dialog.dart    # AI 설교 생성 다이얼로그
-│   ├── ai_sermon_loading_screen.dart  # 설교 생성 로딩 화면
-│   └── ai_sermon_result_screen.dart   # 설교 결과 화면
+│   ├── sermon_provider.dart
+│   └── prayer_provider.dart
 ├── services/
-│   ├── auth_service.dart        # 인증 서비스 (ReflectOS 패턴)
-│   └── ai_service.dart          # AI 설교 생성 서비스
-├── theme/
-│   └── app_theme.dart           # 앱 테마 정의
+│   ├── sermon_service.dart
+│   └── prayer_note_service.dart
+├── screens/
+│   ├── main_screen.dart
+│   ├── today/
+│   ├── search/
+│   └── prayer/
 ├── widgets/
-│   ├── auth_wrapper.dart        # 인증 상태 래퍼
-│   ├── greeting_section.dart    # 인사말 섹션
-│   ├── ai_sermon_card.dart      # AI 설교 카드
-│   ├── daily_worship_card.dart  # 오늘의 예배 카드
-│   ├── daily_bible_card.dart    # 오늘의 성경 카드
-│   ├── prayer_requests_card.dart # 기도 제목 카드
-│   ├── saved_sermons_card.dart  # 보관된 설교 카드
-│   ├── weekly_activity_card.dart # 주간 활동 카드
-│   └── bottom_nav_bar.dart      # 하단 네비게이션 바
-└── main.dart                    # 앱 진입점
+└── theme/
 ```
 
-## 🚀 시작하기
+## 화면 흐름
 
-### 필수 요구사항
-- Flutter SDK (>=3.0.0)
-- Supabase 계정 및 프로젝트
-- `.env` 파일 (환경 변수 설정)
+1. `main.dart`에서 Firebase와 한국어 날짜 포맷을 초기화합니다.
+2. `AiCanaanChurchApp`이 `SermonProvider`, `PrayerProvider`를 등록합니다.
+3. `MainScreen`이 하단 탭으로 `오늘의 말씀`, `말씀 찾기`, `기도 노트`를 전환합니다.
+4. `TodayScreen`은 최신 공개 설교와 최근 말씀을 표시합니다.
+5. `SearchScreen`은 Firestore 설교 목록을 검색/필터링합니다.
+6. `PrayerScreen`은 로컬 기도 노트를 추가하고 삭제합니다.
 
-### 설치 및 실행
+## Legacy 참고 코드
 
-1. **저장소 클론**
-   ```bash
-   git clone <repository-url>
-   cd test009AICHURCH
-   ```
+이 저장소에는 원본/참고용으로 남아 있는 코드가 있습니다.
 
-2. **의존성 설치**
-   ```bash
-   flutter pub get
-   ```
+- `chimshin/`
+- `export_for_chimshin/`
+- 루트의 `check_*.dart`, `get_schema.dart` 등 Supabase 점검 스크립트
 
-3. **환경 변수 설정**
-   - `.env.example`을 참고하여 `.env` 파일 생성
-   ```env
-   SUPABASE_URL=your_supabase_url_here
-   SUPABASE_ANON_KEY=your_supabase_anon_key_here
-   ```
+현재 AI 가나안교회 앱의 기준은 루트 `lib/`입니다. 위 파일들은 참고용으로만 보고, 현재 앱 기능을 수정할 때는 `lib/`, `test/`, Firebase 설정 파일을 중심으로 작업합니다.
 
-4. **Supabase 데이터베이스 설정**
-   - `profiles` 테이블 생성 (id, email, display_name)
-   - `saved_sermons` 테이블 생성 (id, user_id, title, verse, content, user_prompt, created_at)
+## 현재 방향
 
-5. **앱 실행**
-   ```bash
-   flutter run
-   ```
-
-## 🔐 인증 시스템 (ReflectOS 패턴)
-
-본 프로젝트는 **ReflectOS 정석 패턴**을 따릅니다:
-
-1. **회원가입**: 성공 시 자동 로그인하지 않고, 로그인 화면으로 리다이렉트
-2. **프로필 저장**: 백그라운드에서 비동기 처리, 실패해도 가입은 성공으로 처리
-3. **로그인**: 성공 시 즉시 HomeScreen으로 이동
-4. **에러 처리**: Supabase `AuthException.message`를 그대로 사용자에게 표시
-
-## 📱 주요 화면
-
-### 홈 화면
-- CustomScrollView와 Sliver 구조로 부드러운 스크롤
-- 모든 카드 위젯을 SliverToBoxAdapter로 배치
-- 하단 고정 네비게이션 바
-
-### AI 설교 생성 플로우
-1. **홈 화면** → AI 설교 카드 클릭
-2. **다이얼로그** → 고민 입력 및 제안 키워드 선택
-3. **로딩 화면** → 애니메이션과 성경 구절 표시 (3-5초)
-4. **결과 화면** → 생성된 설교 표시 및 보관 기능
-
-## 🎨 디자인 가이드라인
-
-- **주요 색상**:
-  - Primary: #4A90E2 (파란색)
-  - Secondary: #F5F5DC (베이지)
-  - Text: #333333
-  - Background: #FAFAFA
-
-- **폰트**: Noto Sans KR (모든 화면에 전역 적용)
-- **Border Radius**: 16.0 (카드), 20.0 (AI 설교 카드 강조)
-
-## 📝 개발 로드맵 (완료)
-
-- [x] 1단계: 인프라 설정 및 폰트 고정
-- [x] 2단계: UI 재건 (홈 화면 네이티브 이식)
-- [x] 3단계: Supabase Auth 연동 (ReflectOS 패턴)
-- [x] 4단계: AI 설교 생성 로직 연결
-
-## 🤝 기여
-
-프로젝트 개선을 위한 제안과 기여를 환영합니다!
-
-## 📄 라이선스
-
-이 프로젝트는 비상업적 목적으로 개발되었습니다.
-
----
-
-**AI 가나안교회** - 어디서나 함께하는 당신만의 영적 안식처 🙏
+이 앱은 지금 단계에서 Supabase 기반 AI 생성 설교 앱이 아니라, Firebase `public_sermons`를 소비하는 말씀/기도 앱입니다. 향후 AI 생성, 로그인, 동기화 기능을 추가할 수 있지만, 현재 구조를 먼저 안정화한 뒤 별도 제품 결정으로 진행하는 것을 권장합니다.
