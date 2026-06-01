@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/public_sermon_model.dart';
 import '../theme/app_theme.dart';
+import 'sermon_audio_player.dart';
 
 class TodaySermonCard extends StatelessWidget {
   final PublicSermonModel sermon;
@@ -76,6 +77,12 @@ class TodaySermonCard extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 13, color: AppTheme.textLight)),
                 const SizedBox(height: 16),
+
+                // 설교 듣기 (캐시 오디오 있을 때만)
+                if (sermon.audioUrl != null && sermon.audioUrl!.isNotEmpty) ...[
+                  SermonAudioPlayer(audioUrl: sermon.audioUrl!),
+                  const SizedBox(height: 16),
+                ],
 
                 // 설교 요약
                 const _SectionLabel(label: '설교 요약'),

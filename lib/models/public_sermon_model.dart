@@ -14,6 +14,7 @@ class PublicSermonModel {
   final DateTime broadcastDate;
   final String source;
   final DateTime createdAt;
+  final String? audioUrl; // 설교 듣기용 캐시 오디오 URL (없으면 null)
 
   const PublicSermonModel({
     required this.id,
@@ -29,6 +30,7 @@ class PublicSermonModel {
     required this.broadcastDate,
     required this.source,
     required this.createdAt,
+    this.audioUrl,
   });
 
   factory PublicSermonModel.fromFirestore(DocumentSnapshot doc) {
@@ -49,6 +51,7 @@ class PublicSermonModel {
       broadcastDate: (d['broadcastDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       source:        d['source']        ?? '극동방송 데일리 말씀노트 코너',
       createdAt:     (d['createdAt']    as Timestamp?)?.toDate() ?? DateTime.now(),
+      audioUrl:      d['audioUrl']      as String?,
     );
   }
 
