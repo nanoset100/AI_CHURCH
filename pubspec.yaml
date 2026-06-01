@@ -1,7 +1,7 @@
 name: ai_canaan_church
 description: 가나안 성도를 위한 말씀 묵상 앱 - 극동방송 AI 설교 요약으로 혼자 예배드려요
 publish_to: 'none'
-version: 2.1.1+12
+version: 2.2.0+13
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
