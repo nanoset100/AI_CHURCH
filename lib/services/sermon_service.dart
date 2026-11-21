@@ -132,7 +132,7 @@ class SermonService {
         application: '오늘 가장 두렵고 걱정되는 것 하나를 하나님께 내어놓으세요. '
             '말로 기도하기 어려우면 마음속으로만 해도 충분합니다.',
         broadcastDate: date,
-        source: '극동방송 데일리 말씀노트 코너',
+        source: '데일리 말씀노트 공개 설교',
         createdAt: date,
       );
     });

@@ -142,7 +142,7 @@ class _TodayScreenState extends State<TodayScreen> {
           Row(children: [
             Icon(Icons.radio, size: 16, color: AppTheme.primary),
             SizedBox(width: 6),
-            Text('극동방송 × 데일리 말씀노트 코너',
+            Text('데일리 말씀노트 공개 설교',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -150,7 +150,7 @@ class _TodayScreenState extends State<TodayScreen> {
           ]),
           SizedBox(height: 8),
           Text(
-            '극동방송에 방영 확정된 설교를 AI가 요약해 매일 전달합니다.\n'
+            '데일리 말씀노트에 공개된 설교를 AI가 요약해 매일 전달합니다.\n'
             '강요도 없고, 권위도 없어요. 그냥 오늘 말씀 한 편.',
             style: TextStyle(
                 fontSize: 13, color: AppTheme.textMid, height: 1.6),
@@ -175,7 +175,7 @@ class _TodayScreenState extends State<TodayScreen> {
             Text(
               '당신이 교회를 떠난 이유를 묻지 않겠습니다.\n'
               '그냥 오늘 이 말씀 하나 읽어주세요.\n\n'
-              '극동방송 데일리 말씀노트 코너에서 방영 확정된\n'
+              '데일리 말씀노트에 공개된\n'
               '설교를 AI가 요약하여 매일 제공합니다.',
               style: TextStyle(color: AppTheme.textMid, height: 1.7),
             ),

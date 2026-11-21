@@ -39,7 +39,7 @@ class TodaySermonCard extends StatelessWidget {
               children: [
                 const Icon(Icons.radio, size: 14, color: AppTheme.primary),
                 const SizedBox(width: 6),
-                const Text('극동방송 데일리 말씀노트',
+                const Text('데일리 말씀노트 공개 설교',
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -151,7 +151,7 @@ class TodaySermonCard extends StatelessWidget {
     Share.share(
       '📖 ${s.title}\n${s.bibleVerse} · ${s.pastor}\n\n'
       '${s.summary}\n\n✏️ 오늘의 적용\n${s.application}\n\n'
-      '— 극동방송 데일리 말씀노트 코너',
+      '— AI 가나안교회 · 데일리 말씀노트 공개 설교',
     );
   }
 }

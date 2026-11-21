@@ -49,7 +49,7 @@ class PublicSermonModel {
           ? Map<String, String>.from(d['devotionals'] as Map)
           : const {},
       broadcastDate: (d['broadcastDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      source:        d['source']        ?? '극동방송 데일리 말씀노트 코너',
+      source:        d['source']        ?? '데일리 말씀노트 공개 설교',
       createdAt:     (d['createdAt']    as Timestamp?)?.toDate() ?? DateTime.now(),
       audioUrl:      d['audioUrl']      as String?,
     );
