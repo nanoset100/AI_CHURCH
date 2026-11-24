@@ -1,7 +1,7 @@
 name: ai_canaan_church
 description: 가나안 성도를 위한 말씀 묵상 앱 - 공개 설교 AI 요약으로 혼자 예배드려요
 publish_to: 'none'
-version: 2.3.1+17
+version: 2.3.1+18
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
@@ -27,6 +27,9 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.0
 
 flutter:
+  # file_picker's CocoaPods build honors our document-only picker settings.
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - assets/icon/
