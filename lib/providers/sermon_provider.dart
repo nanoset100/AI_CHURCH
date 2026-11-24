@@ -1,108 +1,104 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../models/public_sermon_model.dart';
 import '../services/sermon_service.dart';
 
 class SermonProvider extends ChangeNotifier {
-  PublicSermonModel? _todaySermon;
+  SermonProvider({this.fetch = SermonService.published});
+  final Future<SermonPage> Function({required int limit, String? region}) fetch;
+
   List<PublicSermonModel> _weekSermons = [];
   List<PublicSermonModel> _searchResults = [];
   bool _isTodayLoading = false;
   bool _isSearchLoading = false;
-  String? _error;
-
-  // 검색어 + 지역 필터 상태 관리
-  String _currentKeyword = '';
-  String _currentRegion = '전체';
+  String? _homeMessage;
+  String? _searchMessage;
+  String _keyword = '';
+  String _region = '전체';
+  int _searchRequest = 0;
   Timer? _debounce;
 
-  PublicSermonModel? get todaySermon => _todaySermon;
+  PublicSermonModel? get todaySermon => _weekSermons.firstOrNull;
   List<PublicSermonModel> get weekSermons => _weekSermons;
   List<PublicSermonModel> get searchResults => _searchResults;
   bool get isTodayLoading => _isTodayLoading;
   bool get isSearchLoading => _isSearchLoading;
-  // SearchScreen에서 isLoading으로 접근하도록 alias 제공
-  bool get isLoading => _isSearchLoading;
-  String? get error => _error;
+  String? get homeMessage => _homeMessage;
+  String? get searchMessage => _searchMessage;
 
-  // ── 오늘 묵상할 최신 말씀 로드 ──────────────────────
+  static const _offline = '저장된 말씀입니다. 최신 말씀을 확인하려면 다시 시도해 주세요.';
+  static const _unavailable = '말씀을 불러오지 못했어요.';
+
   Future<void> loadToday() async {
+    if (_isTodayLoading) return;
     _isTodayLoading = true;
-    _error = null;
     notifyListeners();
-
-    _todaySermon = await SermonService.getTodaySermon();
-    _weekSermons = await SermonService.getWeekSermons();
-
-    // public_sermons가 비어 있거나 Firestore 조회가 실패했을 때만 Mock 폴백
-    if (_todaySermon == null) {
-      final mocks = SermonService.getMockData();
-      _todaySermon = mocks.first;
-      _weekSermons = mocks;
+    try {
+      final page = await fetch(limit: 7);
+      if (!page.fromCache || page.sermons.isNotEmpty) {
+        _weekSermons = page.sermons;
+      }
+      _homeMessage = page.fromCache
+          ? (_weekSermons.isEmpty ? _unavailable : _offline)
+          : null;
+    } on FirebaseException catch (e) {
+      if (e.code != 'unavailable' && e.code != 'deadline-exceeded') {
+        _weekSermons = [];
+      }
+      _homeMessage = _weekSermons.isEmpty ? _unavailable : _offline;
+    } catch (_) {
+      // Firestore supplies previously fetched public documents through its disk cache.
+      _weekSermons = [];
+      _homeMessage = _unavailable;
+    } finally {
+      _isTodayLoading = false;
+      notifyListeners();
     }
-
-    _isTodayLoading = false;
-    notifyListeners();
   }
 
-  // ── 검색 (300ms 디바운스) ──────────────────────────
-  Future<void> search(String keyword) async {
-    _currentKeyword = keyword;
+  void search(String keyword) {
+    _keyword = keyword;
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      _applyFilters();
-    });
+    _searchRequest++;
+    _debounce = Timer(const Duration(milliseconds: 300), loadRecent);
   }
 
-  // ── 지역 필터 ─────────────────────────────────────
-  Future<void> filterByRegion(String region) async {
-    _currentRegion = region;
-    await _applyFilters();
+  Future<void> filterByRegion(String region) {
+    _region = region;
+    return loadRecent();
   }
 
-  // ── 복합 필터 적용 (검색어 + 지역) ───────────────────
-  Future<void> _applyFilters() async {
-    _isSearchLoading = true;
-    notifyListeners();
-
-    List<PublicSermonModel> base;
-
-    if (_currentRegion == '전체') {
-      base = await SermonService.getRecentSermons(limit: 200);
-    } else {
-      base = await SermonService.getByRegion(_currentRegion);
-    }
-
-    if (_currentKeyword.trim().isNotEmpty) {
-      final q = _currentKeyword.toLowerCase();
-      base = base
-          .where((s) =>
-              s.title.toLowerCase().contains(q) ||
-              s.bibleVerse.toLowerCase().contains(q) ||
-              s.pastor.toLowerCase().contains(q) ||
-              s.churchName.toLowerCase().contains(q) ||
-              s.region.toLowerCase().contains(q))
-          .toList();
-    }
-
-    _searchResults = base;
-    _isSearchLoading = false;
-    notifyListeners();
-  }
-
-  // ── 최근 목록 (초기 로드) ──────────────────────────
   Future<void> loadRecent() async {
-    _currentKeyword = '';
+    _debounce?.cancel();
+    final request = ++_searchRequest;
     _isSearchLoading = true;
     notifyListeners();
-
-    _searchResults = await SermonService.getRecentSermons();
-    if (_searchResults.isEmpty) {
-      _searchResults = SermonService.getMockData();
+    try {
+      final q = _keyword.trim().toLowerCase();
+      final page = await fetch(
+          limit: _region == '전체' && q.isNotEmpty ? 200 : 30,
+          region: _region == '전체' ? null : _region);
+      if (request != _searchRequest) return;
+      _searchResults = page.sermons
+          .where((s) =>
+              q.isEmpty ||
+              [s.title, s.bibleVerse, s.pastor, s.churchName, s.region]
+                  .any((field) => field.toLowerCase().contains(q)))
+          .toList();
+      _searchMessage = page.fromCache
+          ? (page.sermons.isEmpty ? _unavailable : _offline)
+          : null;
+    } catch (_) {
+      if (request != _searchRequest) return;
+      _searchResults = [];
+      _searchMessage = _unavailable;
+    } finally {
+      if (request == _searchRequest) {
+        _isSearchLoading = false;
+        notifyListeners();
+      }
     }
-
-    _isSearchLoading = false;
-    notifyListeners();
   }
 
   @override

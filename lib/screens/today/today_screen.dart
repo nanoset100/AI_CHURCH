@@ -6,11 +6,11 @@ import '../../providers/sermon_provider.dart';
 import '../../widgets/today_sermon_card.dart';
 import '../../widgets/weekly_strip.dart';
 import '../../widgets/faith_connections.dart';
-import '../prayer/prayer_screen.dart';
 import '../search/sermon_detail_screen.dart';
 
 class TodayScreen extends StatefulWidget {
-  const TodayScreen({super.key});
+  final VoidCallback onPrayerTap;
+  const TodayScreen({super.key, required this.onPrayerTap});
 
   @override
   State<TodayScreen> createState() => _TodayScreenState();
@@ -47,17 +47,20 @@ class _TodayScreenState extends State<TodayScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              if (provider.isTodayLoading)
+              if (provider.homeMessage != null && provider.todaySermon != null)
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextButton.icon(
+                        onPressed: provider.loadToday,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(provider.homeMessage!))),
+              if (provider.isTodayLoading && provider.todaySermon == null)
                 _buildSkeleton()
               else if (provider.todaySermon != null)
                 TodaySermonCard(sermon: provider.todaySermon!, compact: true)
               else
-                _buildEmpty(),
-              FaithConnections(
-                  onPrayerTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PrayerScreen()),
-                      )),
+                _buildEmpty(provider.homeMessage),
+              FaithConnections(onPrayerTap: widget.onPrayerTap),
               if (provider.weekSermons.isNotEmpty)
                 WeeklyStrip(
                   sermons: provider.weekSermons,
@@ -84,7 +87,7 @@ class _TodayScreenState extends State<TodayScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(formatted,
+          Text('오늘 $formatted',
               style: const TextStyle(fontSize: 13, color: AppTheme.textMid)),
           const SizedBox(height: 4),
           const Text('혼자 드리는 하루 예배',
@@ -108,7 +111,7 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(String? message) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -122,12 +125,12 @@ class _TodayScreenState extends State<TodayScreen> {
           const Icon(Icons.hourglass_empty,
               color: AppTheme.textLight, size: 40),
           const SizedBox(height: 12),
-          const Text('오늘 말씀이 아직 준비 중입니다',
-              style: TextStyle(color: AppTheme.textMid, fontSize: 15)),
+          Text(message ?? '아직 공개된 말씀이 없어요.',
+              style: const TextStyle(color: AppTheme.textMid, fontSize: 15)),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => context.read<SermonProvider>().loadToday(),
-            child: const Text('새로고침'),
+            child: const Text('다시 시도'),
           ),
         ],
       ),
@@ -156,8 +159,7 @@ class _TodayScreenState extends State<TodayScreen> {
           ]),
           SizedBox(height: 8),
           Text(
-            '데일리 말씀노트에 공개된 설교를 AI가 요약해 매일 전달합니다.\n'
-            '강요도 없고, 권위도 없어요. 그냥 오늘 말씀 한 편.',
+            '데일리 말씀노트에 공개된 설교를 AI가 요약해 전합니다.',
             style:
                 TextStyle(fontSize: 13, color: AppTheme.textMid, height: 1.6),
           ),
@@ -179,10 +181,7 @@ class _TodayScreenState extends State<TodayScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 12),
             Text(
-              '당신이 교회를 떠난 이유를 묻지 않겠습니다.\n'
-              '그냥 오늘 이 말씀 하나 읽어주세요.\n\n'
-              '데일리 말씀노트에 공개된\n'
-              '설교를 AI가 요약하여 매일 제공합니다.',
+              '오늘 계신 자리에서 말씀 한 편을 읽고, 마음에 담긴 기도를 적어보세요.',
               style: TextStyle(color: AppTheme.textMid, height: 1.7),
             ),
             SizedBox(height: 20),

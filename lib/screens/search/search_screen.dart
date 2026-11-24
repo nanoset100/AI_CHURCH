@@ -16,8 +16,20 @@ class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
   String _selectedRegion = '전체';
   static const _regions = [
-    '전체', '서울', '경기', '인천', '부산', '대구',
-    '광주', '전남', '전북', '경남', '경북', '충청', '강원', '제주'
+    '전체',
+    '서울',
+    '경기',
+    '인천',
+    '부산',
+    '대구',
+    '광주',
+    '전남',
+    '전북',
+    '경남',
+    '경북',
+    '충청',
+    '강원',
+    '제주'
   ];
 
   @override
@@ -98,15 +110,22 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
+          if (provider.searchMessage != null && !provider.isSearchLoading)
+            TextButton.icon(
+                onPressed: provider.loadRecent,
+                icon: const Icon(Icons.refresh),
+                label: Text('${provider.searchMessage} 다시 조회')),
           // 결과 목록
           Expanded(
             child: provider.isSearchLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: AppTheme.primary))
                 : provider.searchResults.isEmpty
-                    ? const Center(
-                        child: Text('검색 결과가 없습니다',
-                            style: TextStyle(color: AppTheme.textLight)))
+                    ? Center(
+                        child: provider.searchMessage == null
+                            ? const Text('검색 결과가 없습니다',
+                                style: TextStyle(color: AppTheme.textLight))
+                            : null)
                     : ListView.builder(
                         itemCount: provider.searchResults.length,
                         itemBuilder: (_, i) => SermonListTile(

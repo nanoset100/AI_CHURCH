@@ -38,17 +38,19 @@ class TodaySermonCard extends StatelessWidget {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            child: Row(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 const Icon(Icons.radio, size: 14, color: AppTheme.primary),
-                const SizedBox(width: 6),
                 const Text('데일리 말씀노트 공개 설교',
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.primary)),
-                const Spacer(),
-                Text(sermon.formattedBroadcastDate,
+                Text(
+                    '게시일 ${sermon.broadcastDate.year}년 ${sermon.formattedBroadcastDate}',
                     style: const TextStyle(
                         fontSize: 12, color: AppTheme.textLight)),
               ],
@@ -69,14 +71,20 @@ class TodaySermonCard extends StatelessWidget {
                 const SizedBox(height: 6),
 
                 // 성경 본문 | 목사
-                Text('${sermon.bibleVerse}  |  ${sermon.pastor}',
+                Text(
+                    [sermon.bibleVerse, sermon.pastor]
+                        .where((s) => s.isNotEmpty)
+                        .join('  |  '),
                     style: const TextStyle(
                         fontSize: 14,
                         color: AppTheme.accent,
                         fontWeight: FontWeight.w600)),
 
                 // 교회 · 지역
-                Text('${sermon.churchName} · ${sermon.region}',
+                Text(
+                    [sermon.churchName, sermon.region]
+                        .where((s) => s.isNotEmpty)
+                        .join(' · '),
                     style: const TextStyle(
                         fontSize: 13, color: AppTheme.textLight)),
                 const SizedBox(height: 16),
@@ -91,13 +99,13 @@ class TodaySermonCard extends StatelessWidget {
                 const _SectionLabel(label: '설교 요약'),
                 const SizedBox(height: 8),
                 Text(sermon.summary,
-                    maxLines: compact ? 5 : null,
+                    maxLines: compact ? 3 : null,
                     overflow: compact ? TextOverflow.ellipsis : null,
                     style: const TextStyle(
                         fontSize: 15, color: AppTheme.textDark, height: 1.75)),
 
                 // 오늘의 적용 (있을 때만)
-                if (sermon.application.isNotEmpty) ...[
+                if (!compact && sermon.application.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const _SectionLabel(label: '오늘의 적용', accent: true),
                   const SizedBox(height: 8),
@@ -146,19 +154,20 @@ class TodaySermonCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // 공유 버튼
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _share(sermon),
-                    icon: const Icon(Icons.share_outlined, size: 18),
-                    label: const Text('이 말씀 나누기'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.primary,
-                      side: const BorderSide(color: AppTheme.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                if (!compact)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _share(sermon),
+                      icon: const Icon(Icons.share_outlined, size: 18),
+                      label: const Text('이 말씀 나누기'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primary,
+                        side: const BorderSide(color: AppTheme.primary),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

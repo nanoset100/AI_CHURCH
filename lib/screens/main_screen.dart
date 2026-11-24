@@ -14,16 +14,14 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _index = 0;
 
-  final _screens = const [
-    TodayScreen(),
-    SearchScreen(),
-    PrayerScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _index, children: _screens),
+      body: IndexedStack(index: _index, children: [
+        TodayScreen(onPrayerTap: () => setState(() => _index = 2)),
+        const SearchScreen(),
+        const PrayerScreen(),
+      ]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../services/prayer_note_service.dart';
+import '../../widgets/prayer_editor.dart';
 import 'package:provider/provider.dart';
 import '../../providers/prayer_provider.dart';
 import '../../providers/sermon_provider.dart';
@@ -26,7 +30,15 @@ class _PrayerScreenState extends State<PrayerScreen> {
     final provider = context.watch<PrayerProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('나의 기도제목')),
+      appBar: AppBar(title: const Text('나의 기도제목'), actions: [
+        PopupMenuButton<bool>(
+            tooltip: '기도제목 백업과 복원',
+            onSelected: _transfer,
+            itemBuilder: (_) => const [
+                  PopupMenuItem(value: true, child: Text('기도제목 백업')),
+                  PopupMenuItem(value: false, child: Text('기도제목 복원')),
+                ]),
+      ]),
       body: Column(
         children: [
           // 안내 문구
@@ -60,7 +72,8 @@ class _PrayerScreenState extends State<PrayerScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDialog(context),
+        onPressed: () =>
+            writePrayer(context, context.read<SermonProvider>().todaySermon),
         backgroundColor: AppTheme.primary,
         icon: const Icon(Icons.edit_outlined, color: Colors.white),
         label: const Text('기도 쓰기', style: TextStyle(color: Colors.white)),
@@ -75,7 +88,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
         children: [
           Icon(Icons.favorite_border, size: 48, color: AppTheme.textLight),
           SizedBox(height: 16),
-          Text('아직 나의 기도제목가 없어요',
+          Text('아직 작성한 기도제목이 없어요',
               style: TextStyle(color: AppTheme.textMid, fontSize: 15)),
           SizedBox(height: 8),
           Text('오늘 하나님께 하고 싶은 말을 자유롭게 적어보세요',
@@ -85,73 +98,50 @@ class _PrayerScreenState extends State<PrayerScreen> {
     );
   }
 
-  void _showAddDialog(BuildContext context) {
-    final ctrl = TextEditingController();
-    final sermon = context.read<SermonProvider>().todaySermon;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('오늘의 기도',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            if (sermon != null) ...[
-              const SizedBox(height: 4),
-              Text('오늘 말씀: ${sermon.title}',
-                  style:
-                      const TextStyle(fontSize: 12, color: AppTheme.textLight)),
-            ],
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              minLines: 4,
-              maxLines: 10,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: '하나님께 하고 싶은 말을 자유롭게 적어주세요...',
-                hintStyle: const TextStyle(color: AppTheme.textLight),
-                filled: true,
-                fillColor: AppTheme.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppTheme.divider),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  if (ctrl.text.trim().isNotEmpty) {
-                    context.read<PrayerProvider>().addNote(
-                          content: ctrl.text.trim(),
-                          sermonTitle: sermon?.title,
-                          bibleVerse: sermon?.bibleVerse,
-                        );
-                    Navigator.pop(ctx);
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text('저장', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _transfer(bool exporting) async {
+    final provider = context.read<PrayerProvider>();
+    String message;
+    try {
+      if (exporting) {
+        final bytes = utf8.encode(await provider.backup());
+        final path = await FilePicker.platform.saveFile(
+            dialogTitle: '기도제목 백업 저장', fileName: '나의 기도제목.json', bytes: bytes);
+        if (path == null) return;
+        message = '기도제목 백업 파일을 저장했어요.';
+      } else {
+        final picked = await FilePicker.platform.pickFiles(
+            type: FileType.custom, allowedExtensions: ['json'], withData: true);
+        if (picked == null) return;
+        final bytes = picked.files.single.bytes;
+        if (bytes == null) throw const FormatException();
+        final notes = PrayerNoteService.readBackup(utf8.decode(bytes));
+        if (!mounted) return;
+        final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                    title: const Text('기도제목 복원'),
+                    content: Text(
+                        '백업에 기도제목이 ${notes.length}개 있어요. 현재 목록에 새 기록만 추가할까요?'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('취소')),
+                      FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('복원')),
+                    ]));
+        if (confirmed != true) return;
+        final added = await provider.restore(notes);
+        message = added == 0 ? '새로 추가할 기도제목이 없어요.' : '기도제목 $added개를 복원했어요.';
+      }
+    } on FormatException {
+      message = 'AI 가나안교회에서 저장한 기도제목 백업 파일을 선택해 주세요.';
+    } catch (_) {
+      message = '파일을 처리하지 못했어요. 다시 시도해 주세요.';
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 }
