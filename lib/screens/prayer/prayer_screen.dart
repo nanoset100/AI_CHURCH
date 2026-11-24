@@ -26,7 +26,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
     final provider = context.watch<PrayerProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('기도 노트')),
+      appBar: AppBar(title: const Text('나의 기도제목')),
       body: Column(
         children: [
           // 안내 문구
@@ -36,8 +36,8 @@ class _PrayerScreenState extends State<PrayerScreen> {
             color: AppTheme.primary.withValues(alpha: 0.05),
             child: const Text(
               '조용히 혼자 하나님께 드리는 기도\n로그인 없이 이 기기에 저장됩니다.',
-              style: TextStyle(
-                  fontSize: 13, color: AppTheme.textMid, height: 1.6),
+              style:
+                  TextStyle(fontSize: 13, color: AppTheme.textMid, height: 1.6),
               textAlign: TextAlign.center,
             ),
           ),
@@ -51,9 +51,9 @@ class _PrayerScreenState extends State<PrayerScreen> {
                     itemCount: provider.notes.length,
                     itemBuilder: (_, i) => PrayerNoteCard(
                       note: provider.notes[i],
-                      onDelete: () =>
-                          context.read<PrayerProvider>().deleteNote(
-                              provider.notes[i].id),
+                      onDelete: () => context
+                          .read<PrayerProvider>()
+                          .deleteNote(provider.notes[i].id),
                     ),
                   ),
           ),
@@ -75,7 +75,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
         children: [
           Icon(Icons.favorite_border, size: 48, color: AppTheme.textLight),
           SizedBox(height: 16),
-          Text('아직 기도 노트가 없어요',
+          Text('아직 나의 기도제목가 없어요',
               style: TextStyle(color: AppTheme.textMid, fontSize: 15)),
           SizedBox(height: 8),
           Text('오늘 하나님께 하고 싶은 말을 자유롭게 적어보세요',
@@ -108,8 +108,8 @@ class _PrayerScreenState extends State<PrayerScreen> {
             if (sermon != null) ...[
               const SizedBox(height: 4),
               Text('오늘 말씀: ${sermon.title}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppTheme.textLight)),
+                  style:
+                      const TextStyle(fontSize: 12, color: AppTheme.textLight)),
             ],
             const SizedBox(height: 12),
             TextField(

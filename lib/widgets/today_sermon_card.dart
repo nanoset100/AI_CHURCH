@@ -3,10 +3,13 @@ import 'package:share_plus/share_plus.dart';
 import '../models/public_sermon_model.dart';
 import '../theme/app_theme.dart';
 import 'sermon_audio_player.dart';
+import '../screens/search/sermon_detail_screen.dart';
 
 class TodaySermonCard extends StatelessWidget {
   final PublicSermonModel sermon;
-  const TodaySermonCard({super.key, required this.sermon});
+  final bool compact;
+  const TodaySermonCard(
+      {super.key, required this.sermon, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -88,10 +91,10 @@ class TodaySermonCard extends StatelessWidget {
                 const _SectionLabel(label: '설교 요약'),
                 const SizedBox(height: 8),
                 Text(sermon.summary,
+                    maxLines: compact ? 5 : null,
+                    overflow: compact ? TextOverflow.ellipsis : null,
                     style: const TextStyle(
-                        fontSize: 15,
-                        color: AppTheme.textDark,
-                        height: 1.75)),
+                        fontSize: 15, color: AppTheme.textDark, height: 1.75)),
 
                 // 오늘의 적용 (있을 때만)
                 if (sermon.application.isNotEmpty) ...[
@@ -105,6 +108,8 @@ class TodaySermonCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(sermon.application,
+                        maxLines: compact ? 3 : null,
+                        overflow: compact ? TextOverflow.ellipsis : null,
                         style: const TextStyle(
                             fontSize: 14,
                             color: AppTheme.textDark,
@@ -112,18 +117,33 @@ class TodaySermonCard extends StatelessWidget {
                   ),
                 ],
                 // 6일 묵상 (있을 때만)
-                if (sermon.devotionals.isNotEmpty) ...[
+                if (!compact && sermon.devotionals.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const _SectionLabel(label: '6일 묵상'),
                   const SizedBox(height: 10),
-                  ...[ 'day1', 'day2', 'day3', 'day4', 'day5', 'day6' ]
-                    .where((k) => sermon.devotionals[k]?.isNotEmpty == true)
-                    .map((k) => _DevoCard(
-                          dayKey: k,
-                          content: sermon.devotionals[k]!,
-                        )),
+                  ...['day1', 'day2', 'day3', 'day4', 'day5', 'day6']
+                      .where((k) => sermon.devotionals[k]?.isNotEmpty == true)
+                      .map((k) => _DevoCard(
+                            dayKey: k,
+                            content: sermon.devotionals[k]!,
+                          )),
                 ],
                 const SizedBox(height: 16),
+
+                if (compact)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  SermonDetailScreen(sermon: sermon))),
+                      icon: const Icon(Icons.menu_book_outlined),
+                      label: const Text('말씀과 묵상 전체 읽기'),
+                    ),
+                  ),
+                const SizedBox(height: 8),
 
                 // 공유 버튼
                 SizedBox(
@@ -162,8 +182,12 @@ class _DevoCard extends StatelessWidget {
   const _DevoCard({required this.dayKey, required this.content});
 
   static const _labels = {
-    'day1': '월', 'day2': '화', 'day3': '수',
-    'day4': '목', 'day5': '금', 'day6': '토',
+    'day1': '월',
+    'day2': '화',
+    'day3': '수',
+    'day4': '목',
+    'day5': '금',
+    'day6': '토',
   };
 
   @override

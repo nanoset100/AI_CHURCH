@@ -32,19 +32,19 @@ class _MainScreenState extends State<MainScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(
-            icon:         Icon(Icons.menu_book_outlined),
+            icon: Icon(Icons.menu_book_outlined),
             selectedIcon: Icon(Icons.menu_book, color: AppTheme.primary),
             label: '오늘의 말씀',
           ),
           NavigationDestination(
-            icon:         Icon(Icons.search_outlined),
+            icon: Icon(Icons.search_outlined),
             selectedIcon: Icon(Icons.search, color: AppTheme.primary),
             label: '말씀 찾기',
           ),
           NavigationDestination(
-            icon:         Icon(Icons.edit_note_outlined),
+            icon: Icon(Icons.edit_note_outlined),
             selectedIcon: Icon(Icons.edit_note, color: AppTheme.primary),
-            label: '기도 노트',
+            label: '나의 기도제목',
           ),
         ],
       ),

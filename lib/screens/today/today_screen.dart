@@ -5,7 +5,8 @@ import '../../theme/app_theme.dart';
 import '../../providers/sermon_provider.dart';
 import '../../widgets/today_sermon_card.dart';
 import '../../widgets/weekly_strip.dart';
-import '../../widgets/welcome_popup.dart';
+import '../../widgets/faith_connections.dart';
+import '../prayer/prayer_screen.dart';
 import '../search/sermon_detail_screen.dart';
 
 class TodayScreen extends StatefulWidget {
@@ -21,7 +22,6 @@ class _TodayScreenState extends State<TodayScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SermonProvider>().loadToday();
-      WelcomePopup.showIfNeeded(context); // 최초 실행 시 1회 환영 팝업
     });
   }
 
@@ -50,9 +50,14 @@ class _TodayScreenState extends State<TodayScreen> {
               if (provider.isTodayLoading)
                 _buildSkeleton()
               else if (provider.todaySermon != null)
-                TodaySermonCard(sermon: provider.todaySermon!)
+                TodaySermonCard(sermon: provider.todaySermon!, compact: true)
               else
                 _buildEmpty(),
+              FaithConnections(
+                  onPrayerTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrayerScreen()),
+                      )),
               if (provider.weekSermons.isNotEmpty)
                 WeeklyStrip(
                   sermons: provider.weekSermons,
@@ -72,7 +77,8 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Widget _buildHeader() {
-    final formatted = DateFormat('yyyy년 M월 d일 (E)', 'ko').format(DateTime.now());
+    final formatted =
+        DateFormat('yyyy년 M월 d일 (E)', 'ko').format(DateTime.now());
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: Column(
@@ -81,9 +87,9 @@ class _TodayScreenState extends State<TodayScreen> {
           Text(formatted,
               style: const TextStyle(fontSize: 13, color: AppTheme.textMid)),
           const SizedBox(height: 4),
-          const Text('오늘도 말씀 하나, 하나님과 함께해요',
+          const Text('혼자 드리는 하루 예배',
               style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 24,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textDark)),
         ],
@@ -152,8 +158,8 @@ class _TodayScreenState extends State<TodayScreen> {
           Text(
             '데일리 말씀노트에 공개된 설교를 AI가 요약해 매일 전달합니다.\n'
             '강요도 없고, 권위도 없어요. 그냥 오늘 말씀 한 편.',
-            style: TextStyle(
-                fontSize: 13, color: AppTheme.textMid, height: 1.6),
+            style:
+                TextStyle(fontSize: 13, color: AppTheme.textMid, height: 1.6),
           ),
         ],
       ),
