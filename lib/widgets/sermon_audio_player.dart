@@ -1,19 +1,34 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import '../theme/app_theme.dart';
+import 'sermon_audio_controls.dart';
+import 'sermon_web_audio_stub.dart'
+    if (dart.library.js_interop) 'sermon_web_audio.dart';
 
 /// 설교 듣기 - 캐시된 오디오 URL을 재생하는 컴팩트 플레이어.
 /// (유료 실시간 TTS API는 사용하지 않음. audioUrl 있을 때만 표시)
-class SermonAudioPlayer extends StatefulWidget {
+class SermonAudioPlayer extends StatelessWidget {
   final String audioUrl;
   const SermonAudioPlayer({super.key, required this.audioUrl});
 
   @override
-  State<SermonAudioPlayer> createState() => _SermonAudioPlayerState();
+  Widget build(BuildContext context) {
+    return kIsWeb
+        ? SermonWebAudio(key: ValueKey(audioUrl), audioUrl: audioUrl)
+        : _NativeSermonAudioPlayer(audioUrl: audioUrl);
+  }
 }
 
-class _SermonAudioPlayerState extends State<SermonAudioPlayer> {
+class _NativeSermonAudioPlayer extends StatefulWidget {
+  final String audioUrl;
+  const _NativeSermonAudioPlayer({required this.audioUrl});
+
+  @override
+  State<_NativeSermonAudioPlayer> createState() => _SermonAudioPlayerState();
+}
+
+class _SermonAudioPlayerState extends State<_NativeSermonAudioPlayer> {
   final AudioPlayer _player = AudioPlayer();
   StreamSubscription<Duration>? _posSub;
   StreamSubscription<Duration>? _durSub;
@@ -49,12 +64,6 @@ class _SermonAudioPlayerState extends State<SermonAudioPlayer> {
     super.dispose();
   }
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
   Future<void> _toggle() async {
     try {
       if (_isPlaying) {
@@ -88,108 +97,17 @@ class _SermonAudioPlayerState extends State<SermonAudioPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    final progress = _duration.inMilliseconds > 0
-        ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.mic_none, size: 16, color: AppTheme.primary),
-              SizedBox(width: 6),
-              Text('설교 듣기',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primary)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              trackHeight: 3,
-            ),
-            child: Slider(
-              value: progress,
-              activeColor: AppTheme.primary,
-              inactiveColor: AppTheme.divider,
-              onChanged: (_duration.inMilliseconds > 0)
-                  ? (v) {
-                      final target = _duration * v;
-                      _player.seek(target);
-                      setState(() => _position = target);
-                    }
-                  : null,
-            ),
-          ),
-          Row(
-            children: [
-              Text(_fmt(_position),
-                  style: const TextStyle(
-                      fontSize: 11, color: AppTheme.textLight)),
-              const Spacer(),
-              Text(_fmt(_duration),
-                  style: const TextStyle(
-                      fontSize: 11, color: AppTheme.textLight)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 재생 / 일시정지
-              GestureDetector(
-                onTap: _loading ? null : _toggle,
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: _loading
-                      ? const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : Icon(
-                          _isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                ),
-              ),
-              const SizedBox(width: 20),
-              // 정지
-              GestureDetector(
-                onTap: _stop,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.divider,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.stop,
-                      color: AppTheme.textMid, size: 22),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return SermonAudioControls(
+      position: _position,
+      duration: _duration,
+      isPlaying: _isPlaying,
+      isLoading: _loading,
+      onToggle: _toggle,
+      onStop: _stop,
+      onSeek: (target) {
+        _player.seek(target);
+        setState(() => _position = target);
+      },
     );
   }
 }

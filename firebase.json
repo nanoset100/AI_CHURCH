@@ -17,7 +17,8 @@
           "projectId": "daily-wordnote",
           "configurations": {
             "android": "1:169245869660:android:8ab640a977134397070899",
-            "ios": "1:169245869660:ios:fb16abd78182bfdd070899"
+            "ios": "1:169245869660:ios:fb16abd78182bfdd070899",
+            "web": "1:169245869660:web:18902b2180b92da3070899"
           }
         }
       }

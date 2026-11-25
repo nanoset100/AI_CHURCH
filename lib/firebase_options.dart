@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -48,6 +45,16 @@ class DefaultFirebaseOptions {
         );
     }
   }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAVFtClk7EcUZUeaO7Nic7KFR2RbBbZT-U',
+    appId: '1:169245869660:web:18902b2180b92da3070899',
+    messagingSenderId: '169245869660',
+    projectId: 'daily-wordnote',
+    authDomain: 'daily-wordnote.firebaseapp.com',
+    storageBucket: 'daily-wordnote.firebasestorage.app',
+    measurementId: 'G-TP367B9KEQ',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBCa_SLEnXO-Thv50K0wEGK0s-X4dn3P-A',
