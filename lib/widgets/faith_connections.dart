@@ -23,7 +23,7 @@ class FaithConnections extends StatelessWidget {
         tap: () => _open(context, FaithLinkService.openBible, '왕초보성경통독')
       ),
       (
-        label: '유튜브 쇼츠 보기',
+        label: '유튜브 쇼츠',
         icon: Icons.play_circle_outline,
         tap: () => _open(context, FaithLinkService.openShorts, '유튜브')
       ),

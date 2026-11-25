@@ -18,7 +18,7 @@ void main() {
         )),
       ),
     ));
-    expect(find.text('유튜브 쇼츠 보기'), findsOneWidget);
+    expect(find.text('유튜브 쇼츠'), findsOneWidget);
     expect(find.text('왕초보성경통독'), findsOneWidget);
     expect(find.textContaining('대표기도'), findsNothing);
     await tester.ensureVisible(find.text('나의 기도제목'));
