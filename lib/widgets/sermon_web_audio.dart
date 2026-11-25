@@ -7,8 +7,13 @@ import 'sermon_audio_controls.dart';
 
 class SermonWebAudio extends StatefulWidget {
   final String audioUrl;
+  final bool compact;
 
-  const SermonWebAudio({super.key, required this.audioUrl});
+  const SermonWebAudio({
+    super.key,
+    required this.audioUrl,
+    required this.compact,
+  });
 
   @override
   State<SermonWebAudio> createState() => _SermonWebAudioState();
@@ -99,6 +104,7 @@ class _SermonWebAudioState extends State<SermonWebAudio> {
       onToggle: _toggle,
       onStop: _loading ? null : _stop,
       onSeek: _seek,
+      compact: widget.compact,
       error: _audio.error != null || _playFailed
           ? '설교 음성을 불러오지 못했어요. 다시 재생해 주세요.'
           : null,

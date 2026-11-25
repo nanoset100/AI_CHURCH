@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,9 @@ class _TodayScreenState extends State<TodayScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SermonProvider>();
+    final viewport = MediaQuery.sizeOf(context);
+    final shortViewport =
+        kIsWeb && viewport.width < 600 && viewport.height < 760;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +50,7 @@ class _TodayScreenState extends State<TodayScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(shortViewport: shortViewport),
               if (provider.homeMessage != null && provider.todaySermon != null)
                 Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -57,7 +61,11 @@ class _TodayScreenState extends State<TodayScreen> {
               if (provider.isTodayLoading && provider.todaySermon == null)
                 _buildSkeleton()
               else if (provider.todaySermon != null)
-                TodaySermonCard(sermon: provider.todaySermon!, compact: true)
+                TodaySermonCard(
+                  sermon: provider.todaySermon!,
+                  compact: true,
+                  shortViewport: shortViewport,
+                )
               else
                 _buildEmpty(provider.homeMessage),
               FaithConnections(onPrayerTap: widget.onPrayerTap),
@@ -79,11 +87,13 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader({required bool shortViewport}) {
     final formatted =
         DateFormat('yyyy년 M월 d일 (E)', 'ko').format(DateTime.now());
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      padding: shortViewport
+          ? const EdgeInsets.fromLTRB(20, 10, 20, 4)
+          : const EdgeInsets.fromLTRB(20, 20, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

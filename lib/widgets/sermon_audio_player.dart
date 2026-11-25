@@ -10,12 +10,18 @@ import 'sermon_web_audio_stub.dart'
 /// (유료 실시간 TTS API는 사용하지 않음. audioUrl 있을 때만 표시)
 class SermonAudioPlayer extends StatelessWidget {
   final String audioUrl;
-  const SermonAudioPlayer({super.key, required this.audioUrl});
+  final bool compact;
+  const SermonAudioPlayer({
+    super.key,
+    required this.audioUrl,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return kIsWeb
-        ? SermonWebAudio(key: ValueKey(audioUrl), audioUrl: audioUrl)
+        ? SermonWebAudio(
+            key: ValueKey(audioUrl), audioUrl: audioUrl, compact: compact)
         : _NativeSermonAudioPlayer(audioUrl: audioUrl);
   }
 }

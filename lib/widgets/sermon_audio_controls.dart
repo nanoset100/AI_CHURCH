@@ -11,6 +11,7 @@ class SermonAudioControls extends StatelessWidget {
   final VoidCallback? onStop;
   final ValueChanged<Duration> onSeek;
   final String? error;
+  final bool compact;
 
   const SermonAudioControls({
     super.key,
@@ -22,6 +23,7 @@ class SermonAudioControls extends StatelessWidget {
     required this.onStop,
     required this.onSeek,
     this.error,
+    this.compact = false,
   });
 
   String _formatTime(Duration time) {
@@ -37,8 +39,47 @@ class SermonAudioControls extends StatelessWidget {
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
     final timeStyle = Theme.of(context).textTheme.bodyMedium;
+    const title = Row(
+      children: [
+        Icon(Icons.mic_none, size: 16, color: AppTheme.primary),
+        SizedBox(width: 6),
+        Flexible(
+          child: Text('설교 듣기',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              )),
+        ),
+      ],
+    );
+    final buttons = [
+      IconButton.filled(
+        tooltip: isPlaying ? '일시정지' : '재생',
+        onPressed: isLoading ? null : onToggle,
+        style: IconButton.styleFrom(
+          fixedSize: Size.square(compact ? 48 : 52),
+          backgroundColor: AppTheme.primary,
+          foregroundColor: Colors.white,
+        ),
+        icon: isLoading
+            ? const SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 28),
+      ),
+      SizedBox(width: compact ? 8 : 16),
+      IconButton.filledTonal(
+        tooltip: '정지',
+        onPressed: onStop,
+        icon: const Icon(Icons.stop),
+      ),
+    ];
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: compact
+          ? const EdgeInsets.fromLTRB(16, 6, 16, 8)
+          : const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: BoxDecoration(
         color: AppTheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
@@ -47,18 +88,10 @@ class SermonAudioControls extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.mic_none, size: 16, color: AppTheme.primary),
-              SizedBox(width: 6),
-              Text('설교 듣기',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primary,
-                  )),
-            ],
-          ),
+          if (compact)
+            Row(children: [const Expanded(child: title), ...buttons])
+          else
+            title,
           SliderTheme(
             data: SliderTheme.of(context).copyWith(trackHeight: 4),
             child: Slider(
@@ -87,34 +120,10 @@ class SermonAudioControls extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton.filled(
-                tooltip: isPlaying ? '일시정지' : '재생',
-                onPressed: isLoading ? null : onToggle,
-                style: IconButton.styleFrom(
-                  fixedSize: const Size.square(52),
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                ),
-                icon: isLoading
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(isPlaying ? Icons.pause : Icons.play_arrow,
-                        size: 28),
-              ),
-              const SizedBox(width: 16),
-              IconButton.filledTonal(
-                tooltip: '정지',
-                onPressed: onStop,
-                icon: const Icon(Icons.stop),
-              ),
-            ],
-          ),
+          if (!compact) ...[
+            const SizedBox(height: 4),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: buttons),
+          ],
           if (error != null)
             Padding(
               padding: const EdgeInsets.only(top: 8),

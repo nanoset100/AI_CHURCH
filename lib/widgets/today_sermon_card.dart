@@ -8,13 +8,24 @@ import '../screens/search/sermon_detail_screen.dart';
 class TodaySermonCard extends StatelessWidget {
   final PublicSermonModel sermon;
   final bool compact;
-  const TodaySermonCard(
-      {super.key, required this.sermon, this.compact = false});
+  final bool shortViewport;
+  const TodaySermonCard({
+    super.key,
+    required this.sermon,
+    this.compact = false,
+    this.shortViewport = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final readBeforeSummary = compact && shortViewport;
+    final date =
+        readBeforeSummary && sermon.broadcastDate.year == DateTime.now().year
+            ? '${sermon.broadcastDate.month}월 ${sermon.broadcastDate.day}일'
+            : '${sermon.broadcastDate.year}년 ${sermon.formattedBroadcastDate}';
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(
+          horizontal: 16, vertical: readBeforeSummary ? 4 : 8),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(20),
@@ -32,7 +43,8 @@ class TodaySermonCard extends StatelessWidget {
         children: [
           // 헤더 뱃지
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(
+                horizontal: 16, vertical: readBeforeSummary ? 6 : 10),
             decoration: BoxDecoration(
               color: AppTheme.primary.withValues(alpha: 0.08),
               borderRadius:
@@ -49,8 +61,7 @@ class TodaySermonCard extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.primary)),
-                Text(
-                    '게시일 ${sermon.broadcastDate.year}년 ${sermon.formattedBroadcastDate}',
+                Text('게시일 $date',
                     style: const TextStyle(
                         fontSize: 12, color: AppTheme.textLight)),
               ],
@@ -58,7 +69,9 @@ class TodaySermonCard extends StatelessWidget {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: readBeforeSummary
+                ? const EdgeInsets.fromLTRB(16, 10, 16, 12)
+                : const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -87,19 +100,27 @@ class TodaySermonCard extends StatelessWidget {
                         .join(' · '),
                     style: const TextStyle(
                         fontSize: 13, color: AppTheme.textLight)),
-                const SizedBox(height: 16),
+                SizedBox(height: readBeforeSummary ? 8 : 16),
 
                 // 설교 듣기 (캐시 오디오 있을 때만)
                 if (sermon.audioUrl != null && sermon.audioUrl!.isNotEmpty) ...[
-                  SermonAudioPlayer(audioUrl: sermon.audioUrl!),
-                  const SizedBox(height: 16),
+                  SermonAudioPlayer(
+                    audioUrl: sermon.audioUrl!,
+                    compact: readBeforeSummary,
+                  ),
+                  SizedBox(height: readBeforeSummary ? 8 : 16),
+                ],
+
+                if (readBeforeSummary) ...[
+                  _buildReadButton(context),
+                  const SizedBox(height: 12),
                 ],
 
                 // 설교 요약
                 const _SectionLabel(label: '설교 요약'),
                 const SizedBox(height: 8),
                 Text(sermon.summary,
-                    maxLines: compact ? 3 : null,
+                    maxLines: readBeforeSummary ? 2 : (compact ? 3 : null),
                     overflow: compact ? TextOverflow.ellipsis : null,
                     style: const TextStyle(
                         fontSize: 15, color: AppTheme.textDark, height: 1.75)),
@@ -136,21 +157,8 @@ class TodaySermonCard extends StatelessWidget {
                             content: sermon.devotionals[k]!,
                           )),
                 ],
-                const SizedBox(height: 16),
-
-                if (compact)
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  SermonDetailScreen(sermon: sermon))),
-                      icon: const Icon(Icons.menu_book_outlined),
-                      label: const Text('말씀과 묵상 전체 읽기'),
-                    ),
-                  ),
+                if (!readBeforeSummary) const SizedBox(height: 16),
+                if (compact && !readBeforeSummary) _buildReadButton(context),
                 const SizedBox(height: 8),
 
                 // 공유 버튼
@@ -172,6 +180,20 @@ class TodaySermonCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildReadButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SermonDetailScreen(sermon: sermon)),
+        ),
+        icon: const Icon(Icons.menu_book_outlined),
+        label: const Text('말씀과 묵상 전체 읽기'),
       ),
     );
   }
